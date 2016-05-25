@@ -21,6 +21,7 @@ function LollipopChart(selection) {
   var svgWidth = 250,
   svgHeight = 250,
   barGap = 5, 
+  lollipopRadius = 10,
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
@@ -79,9 +80,9 @@ function LollipopChart(selection) {
 
     //initialize scales
     yScale.domain([d3.min(chartData.members, valueAccessor), d3.max(chartData.members, valueAccessor)])
-      .range(0, svgHeight);
+      .range([0, svgHeight]);
     xScale.domain([0, chartData.members.length-1])
-      .range(0, svgWidth);
+      .range([0, svgWidth]);
     colorScale.domain(chartData.members.map(nameAccessor));
 
     // min/max of chartData may be different from min/max of the chartData member values
@@ -139,6 +140,13 @@ function LollipopChart(selection) {
     return chart;
   };
 
+  chart.lollipopRadius = function(_) {
+    if(!arguments.length) return lollipopRadius;
+    lollipopRadius = _;
+
+    return chart; 
+  };
+
   function generateBarX(d, i) {
     return xScale(i);
   }
@@ -162,14 +170,14 @@ function LollipopChart(selection) {
   // Check if the value would cause the lollipop to clip
   // Return the adjusted value
   function adjustLollipopClipping(value) {
-    var clipExtentLow = clipExtentLow();
-    var clipExtentHigh = clipExtentHigh();
+    var lowExtent = clipExtentLow();
+    var highExtent = clipExtentHigh();
 
     //value is inbetween lower extent
-    if(value >= clipExtentLow[0] && value <= clipExtentLow[1]) return value + lollipopRadius;
+    if(value >= lowExtent[0] && value <= lowExtent[1]) return value + lollipopRadius;
 
     //value is inbetween higher extent
-    if(value >= clipExtentHigh[0] && value <= clipExtentHigh[1]) return value - lollipopRadius;
+    if(value >= highExtent[0] && value <= highExtent[1]) return value - lollipopRadius;
 
     return value;
   }
@@ -220,5 +228,6 @@ function LollipopChart(selection) {
 
   return chart;
 }
+
 return LollipopChart;
 }));
