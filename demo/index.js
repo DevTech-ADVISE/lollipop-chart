@@ -16,5 +16,5 @@ var data = {
 lollipopChart
   .width(200)
   .height(100)
-  .barSpacing(5)
+  .barGap(5)
   .render(data);

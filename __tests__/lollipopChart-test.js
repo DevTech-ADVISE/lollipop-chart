@@ -1,8 +1,8 @@
 jest.unmock('../build/lollipopChart.js');
 jest.unmock('../demo/d3.js');
 
-var LollipopChart = require('../build/lollipopChart.js');
-var d3 = require('../demo/d3.js');
+var LollipopChart = require('../build/lollipopChart.js')('#test');
+var d3 = require('../demo/d3.js')();
 var data = {
   min: 5,
   max: 100,
@@ -26,7 +26,7 @@ LollipopChart
   .data(data);
 
 var yScale = d3.scale.linear()
-  .domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor])
+  .domain([d3.min(chartData, chart.valueAccessor), d3.max(chartData, chart.valueAccessor)])
   .range(0, HEIGHT);
 
 describe('LollipopChart', function() {
@@ -43,7 +43,7 @@ describe('LollipopChart', function() {
     });
 
     it('should calculate bar height correctly for the comparisonValue of Bangladesh', function() {
-      var comparisonValue = getObject('Bangladesh', nameAccessor).comparisonValue;
+      var comparisonValue = getObject('Bangladesh', chart.nameAccessor()).comparisonValue;
       var expectedChartHeight = yScale(comparisonValue);
       var generatedChartHeight = LollipopChart.generateHeight(comparisonValue);
 
@@ -58,7 +58,7 @@ describe('LollipopChart', function() {
     });
 
     it('should set the lollipop height above the bar for a value above its comparisonValue like for Afghanistan', function() {
-      var heights = generatedHeights('Afghanistan', nameAccessor);
+      var heights = generatedHeights('Afghanistan', chart.nameAccessor());
       var lollipopHeight = heights.lollipopHeight;
       var barHeight = heights.barHeight;
 
@@ -66,7 +66,7 @@ describe('LollipopChart', function() {
     });
 
     it('should set the lollipop height below the bar for a value below its comparisonValue like for Maldives', function() {
-      var heights = generatedHeights('Maldives', nameAccessor);
+      var heights = generatedHeights('Maldives', chart.nameAccessor());
       var lollipopHeight = heights.lollipopHeight;
       var barHeight = heights.barHeight;
 
@@ -74,7 +74,7 @@ describe('LollipopChart', function() {
     });
 
     it('should set the lollipop at the same height as the bar if the value is equal to the comparisonValue like for Bangladesh', function() {
-      var heights = generatedHeights('Bangladesh', nameAccessor);
+      var heights = generatedHeights('Bangladesh', chart.nameAccessor());
       var lollipopHeight = heights.lollipopHeight;
       var barHeight = heights.barHeight;
 
@@ -82,7 +82,7 @@ describe('LollipopChart', function() {
     });
 
     it('should set the lollipop height at the top of the chart(and not clipped) for a value that is equal to the max like India', function() {
-      var generatedLollipopHeight = generatedHeights('India', nameAccessor).lollipopHeight;
+      var generatedLollipopHeight = generatedHeights('India', chart.nameAccessor()).lollipopHeight;
       var radius = LollipopChart.lollipopRadius();
       var expectedLollipopHeight = HEIGHT - radius;
 
@@ -90,19 +90,25 @@ describe('LollipopChart', function() {
     });
 
     it('should set the lollipop height at the bottom of the chart(and not clipped) for a value that is equal to the min', function() {
-      var generatedLollipopHeight = generatedHeights('India', nameAccessor).lollipopHeight;
+      var generatedLollipopHeight = generatedHeights('India', chart.nameAccessor()).lollipopHeight;
       var radius = LollipopChart.lollipopRadius();
       var expectedLollipopHeight = 0 + radius;
 
       expect(generatedLollipopHeight).toEqual(expectedLollipopHeight);
     });
 
-    it('should show the color-coding of lollipops', function() {
+    it('should color code the lollipops', function() {
+      var generatedColorScale = LollipopChart.colorScale();
+      var expectedColorScale = d3.scale.category10().domain(data.members.map(chart.nameAccessor()));
 
+      expect(generatedColorScale('Bhutan')).toEqual(expectedColorScale('Bhutan'));
     });
 
     it('should have the ability to use custom data accessors', function() {
+      //Example use of the accessor
+      var listOfComparisonValues = data.members.map(comparisonValueAccessor);
 
+      expect(listOfComparisonValues[2]).toEqual(data.members[2].average);
     });
 
   });
@@ -116,6 +122,7 @@ describe('LollipopChart', function() {
     });
 
   });
+  
 });
 
 //helper functions

@@ -12,9 +12,11 @@ function LollipopChart(selection) {
   var svgWidth = 250,
   svgHeight = 250,
   barGap = 5, 
-  chartData = [],
+  chartData = {},
   yScale = d3.scale.linear(),
-  xScale = d3.scale.linear();
+  xScale = d3.scale.linear(), 
+  min, max, 
+  colorScale = d3.scale.category10();
 
   // tell the chart how to access its data
   var valueAccessor = function(d) { return d.value; };
@@ -49,8 +51,8 @@ function LollipopChart(selection) {
       .append("rect")
       .attr("x", generateBarX)
       .attr("y", generateBarY)
-      .attr("width", generateBarWidth)
-      .attr("height", generateBarHeight)
+      .attr("width", chart.generateBarWidth)
+      .attr("height", chart.generateBarHeight)
   };
 
   /**
@@ -67,30 +69,65 @@ function LollipopChart(selection) {
     chartData = _;
 
     //initialize scales
-    yScale.domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor])
+    yScale.domain([d3.min(chartData.members, valueAccessor), d3.max(chartData.members, valueAccessor)])
       .range(0, svgHeight);
-    xScale.domain(0, chartData.length-1)
+    xScale.domain([0, chartData.members.length-1])
       .range(0, svgWidth);
+    colorScale.domain(chartData.members.map(nameAccessor));
+
+    // min/max of chartData may be different from min/max of the chartData member values
+    min = chartData.min;
+    max = chartData.max;
+
+    return chart;
+  };
+
+  chart.colorScale = function(_) {
+    if(!arguments.length) return colorScale;
+    colorScale = _;
+
+    return chart;
+  };
+
+  // For convenience 
+  chart.colorDomain = function(_) {
+    if(!arguments.length) return colorScale.domain();
+    colorScale.domain(_);
+
+    return chart;
+  };
+
+  // For convenience
+  chart.colorRange = function(_) {
+    if(!arguments.length) return colorScale.range();
+    colorScale.range(_);
 
     return chart;
   };
 
   chart.xScale = function(_) {
     if(!arguments.length) return xScale;
-    chartData = _;
+    xScale = _;
 
     return chart;
   };
 
   chart.yScale = function(_) {
     if(!arguments.length) return yScale;
-    chartData = _;
+    yScale = _;
 
     return chart;
   };
 
   chart.barWidth = function(_) {
-    return generateBarWidth();
+    return chart.generateBarWidth();
+  };
+
+  chart.barGap = function(_) {
+    if(!arguments.length) return barGap;
+    barGap = _;
+
+    return chart;
   };
 
   function generateBarX(d, i) {
@@ -98,11 +135,11 @@ function LollipopChart(selection) {
   }
 
   function generateBarY(d, i) {
-    return generateBarHeight(d) - svgHeight;
+    return chart.generateBarHeight(d) - svgHeight;
   }
 
   chart.generateBarWidth = function(d) {
-    return svgWidth / chartData.length - barGap; 
+    return svgWidth / chartData.members.length - barGap; 
   }
 
   chart.generateBarHeight = function(d) {
@@ -110,7 +147,7 @@ function LollipopChart(selection) {
   };
 
   chart.generateLollipopHeight = function(d) {
-    var adjustLollipopClipping(yScale(d));
+    return adjustLollipopClipping(yScale(d));
   };
 
   // Check if the value would cause the lollipop to clip

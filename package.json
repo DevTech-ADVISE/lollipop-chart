@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/BI/lollipop-chart#readme",
   "devDependencies": {
+    "babel-jest": "^12.1.0",
     "browser-sync": "^2.12.8",
     "gulp": "^3.9.1",
     "gulp-umd": "^0.2.0",
