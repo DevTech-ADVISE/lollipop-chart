@@ -8,15 +8,16 @@
 
 // d3 is an external, it won't be bundled in
 var d3 = require('d3');
+if(process.env.NODE_ENV !== "test") require('./lollipopChart.scss');
 
 var LollipopChart = function (selection) {
 
   var chart = {};
 
   // settings
-  var svgWidth = 250,
-  svgHeight = 250,
-  barGap = 5, 
+  var svgWidth = 450,
+  svgHeight = 200,
+  barGap = 15, 
   lollipopRadius = 10,
   chartData = {},
   yScale = d3.scale.linear(),
@@ -40,7 +41,7 @@ var LollipopChart = function (selection) {
   chart.render = function(_) {
 
     // initialize svg
-    var svg = d3.select(selection).html('').append('svg');
+    var svg = d3.select(selection).html('').classed('Lollipop-Chart', true).append('svg');
 
     //if data is passed, update the chart data
     if(arguments.length) {
@@ -51,14 +52,38 @@ var LollipopChart = function (selection) {
     svg.attr("width", svgWidth);
     svg.attr("height", svgHeight);
 
+    // append bars
     svg.selectAll("rect")
-      .data(chartData)
+      .data(chartData.members)
       .enter()
       .append("rect")
       .attr("x", generateBarX)
       .attr("y", generateBarY)
       .attr("width", chart.generateBarWidth)
       .attr("height", chart.generateBarHeight)
+
+    // append the lollipop stems
+    svg.selectAll("line")
+      .data(chartData.members)
+      .enter()
+      .append("line")
+      .attr("x1", generateLollipopX)
+      .attr("x2", generateLollipopX)
+      .attr("y1", svgHeight)
+      .attr("y2", generateLollipopY);
+
+    // append lollipop circles
+    svg.selectAll("circle")
+      .data(chartData.members)
+      .enter()
+      .append("circle")
+      .attr("cx", generateLollipopX)
+      .attr("cy", generateLollipopY)
+      .attr("r", lollipopRadius)
+      .attr("fill", function(d) { return colorScale(nameAccessor(d)); });
+
+
+
   };
 
   /**
@@ -74,10 +99,11 @@ var LollipopChart = function (selection) {
     if(!arguments.length) return chartData;
     chartData = _;
 
-    //initialize scales
+    // Initialize scales
     yScale.domain([d3.min(chartData.members, valueAccessor), d3.max(chartData.members, valueAccessor)])
       .range([0, svgHeight]);
-    xScale.domain([0, chartData.members.length-1])
+    // the xScale is used to position objects on the x axis
+    xScale.domain([0, chartData.members.length])
       .range([0, svgWidth]);
     colorScale.domain(chartData.members.map(nameAccessor));
 
@@ -143,24 +169,34 @@ var LollipopChart = function (selection) {
     return chart; 
   };
 
+  function generateLollipopX(d, i) {
+    var barX = generateBarX(d, i);
+
+    return barX + chart.generateBarWidth() / 2;
+  }
+
+  function generateLollipopY(d, i) {
+    return svgHeight - chart.generateLollipopHeight(d);
+  }
+
   function generateBarX(d, i) {
     return xScale(i);
   }
 
   function generateBarY(d, i) {
-    return chart.generateBarHeight(d) - svgHeight;
+    return svgHeight - chart.generateBarHeight(d);
   }
 
-  chart.generateBarWidth = function(d) {
+  chart.generateBarWidth = function() {
     return svgWidth / chartData.members.length - barGap; 
   }
 
   chart.generateBarHeight = function(d) {
-    return yScale(d);
+    return yScale(comparisonValueAccessor(d));
   };
 
   chart.generateLollipopHeight = function(d) {
-    return adjustLollipopClipping(yScale(d));
+    return adjustLollipopClipping(yScale(valueAccessor(d)));
   };
 
   // Check if the value would cause the lollipop to clip
