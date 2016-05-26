@@ -6,8 +6,7 @@
  * @return {LollipopChart}
  */
 
-// d3 is an external dependency, it does not get bundled into the build
-// it's required here for browserify to be able to add line numbers for errors
+// d3 is an external, it won't be bundled in
 var d3 = require('d3');
 
 var LollipopChart = function (selection) {
