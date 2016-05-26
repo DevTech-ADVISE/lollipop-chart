@@ -9,7 +9,7 @@ var data = {
     {country: 'India', value: 100, average: 55},
     {country: 'Maldives', value: 25, average: 30},
     {country: 'Nepal', value: 37, average: 40},
-    {country: 'Pakistan', value: 50, average: 60},
+    {country: 'Pakistan', value: 53, average: 60},
     {country: 'Sri Lanka', value: 65, average: 50},
   ]};
 
