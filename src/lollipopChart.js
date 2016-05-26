@@ -5,7 +5,11 @@
  * @param {String} selection - any valid d3 selector. This selector is used to place the chart.
  * @return {LollipopChart}
  */
+
+// d3 is an external dependency, it does not get bundled into the build
+// it's required here for browserify to be able to add line numbers for errors
 var d3 = require('d3');
+
 var LollipopChart = function (selection) {
 
   var chart = {};

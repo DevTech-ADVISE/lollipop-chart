@@ -3,6 +3,11 @@ var browserSync = require('browser-sync');
 var reload      = browserSync.reload;
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
+var tap = require('gulp-tap');
+var streamify = require('gulp-streamify');
+var domain = require('domain');
+var concat = require('gulp-concat');
+var gutil = require('gulp-util');
 
 gulp.task('default', function() {
   // place code for your default task here
@@ -24,11 +29,36 @@ gulp.task('serve', ['build', 'demoDeps'], function() {
 
 gulp.task('build', function() {
 
-  return browserify('./src/lollipopChart.js', {standalone: 'LollipopChart', debug: true})
-    .bundle()
-    .pipe(source('lollipopChart.js'))
+  gulp.src('./src/lollipopChart.js', {read: false})
+    .pipe(tap(function(file) {
+      // let gulp keep watching instead of dieing when there are syntax errors
+      // adapted this error handling from: http://latviancoder.com/story/error-handling-browserify-gulp
+      var d = domain.create();
+
+      d.on("error", function(err) {
+        gutil.log(
+          gutil.colors.red("Browserify compile error: "),
+          err.message,
+          "\n\t",
+          gutil.colors.cyan("in file"),
+          file.path
+        );
+      });
+
+      d.run(function() {
+        file.contents = browserify({
+          entries: [file.path],
+          standalone: 'LollipopChart',
+          debug: true
+        })
+        .bundle();
+      });
+
+    }))
+    .pipe(streamify(concat('lollipopChart.js')))
     .pipe(gulp.dest('build'))
     .pipe(gulp.dest('demo'));
+
 });
 
 gulp.task('dev', ['serve'], function() {
