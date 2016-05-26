@@ -1,7 +1,8 @@
 var gulp        = require('gulp');
 var browserSync = require('browser-sync');
 var reload      = browserSync.reload;
-var umd         = require('gulp-umd');
+var browserify = require('browserify');
+var source = require('vinyl-source-stream');
 
 gulp.task('default', function() {
   // place code for your default task here
@@ -22,8 +23,10 @@ gulp.task('serve', ['build', 'demoDeps'], function() {
 });
 
 gulp.task('build', function() {
-  return gulp.src('src/*.js')
-    .pipe(umd())
+
+  return browserify('./src/lollipopChart.js', {standalone: 'LollipopChart', debug: true})
+    .bundle()
+    .pipe(source('lollipopChart.js'))
     .pipe(gulp.dest('build'))
     .pipe(gulp.dest('demo'));
 });

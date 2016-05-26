@@ -27,12 +27,21 @@
   "devDependencies": {
     "babel-jest": "^12.1.0",
     "browser-sync": "^2.12.8",
+    "browserify": "^13.0.1",
+    "browserify-shim": "^3.8.12",
     "gulp": "^3.9.1",
-    "gulp-umd": "^0.2.0",
     "jest-cli": "^12.1.1",
-    "jsdoc-to-markdown": "^1.3.6"
+    "jsdoc-to-markdown": "^1.3.6",
+    "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
     "d3": "^3.5.17"
+  },
+  "browserify": {
+    "transform": [ "browserify-shim" ]
+  },
+  "browserify-shim": {
+    "./demo/d3.js": "d3",
+    "d3": "global:d3"
   }
 }

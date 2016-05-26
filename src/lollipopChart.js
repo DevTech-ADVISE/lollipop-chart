@@ -5,7 +5,9 @@
  * @param {String} selection - any valid d3 selector. This selector is used to place the chart.
  * @return {LollipopChart}
  */
-function LollipopChart(selection) {
+var d3 = require('d3');
+var LollipopChart = function (selection) {
+
   var chart = {};
 
   // settings
@@ -219,3 +221,5 @@ function LollipopChart(selection) {
 
   return chart;
 }
+
+module.exports = LollipopChart;

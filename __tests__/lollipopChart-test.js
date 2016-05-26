@@ -1,9 +1,8 @@
-jest.unmock('../build/lollipopChart.js');
-jest.unmock('../demo/d3.js');
+jest.unmock('../src/lollipopChart.js');
+jest.unmock('../node_modules/d3/d3.js')
 
-// need d3 globally for LollipopChart
-d3 = require('../demo/d3.js');
-var LollipopChart = require('../build/lollipopChart.js')('#test');
+var LollipopChart = require('../src/lollipopChart.js')('#test');
+var d3 = require('../node_modules/d3/d3.js');
 
 var data = {
   min: 5,
