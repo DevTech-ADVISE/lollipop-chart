@@ -27,7 +27,7 @@ var LollipopChart = function (selection) {
   colorScale = d3.scale.category10();
 
   // scale accessor will use an individual scale if given, otherwise it uses the chart scale
-  var yscaleAccessor = function(d) { 
+  var yScaleAccessor = function(d) { 
     if(d.scale) return d.scale; 
 
     return yScale; 
@@ -62,7 +62,7 @@ var LollipopChart = function (selection) {
 
     // append bars
     svg.selectAll("rect")
-      .data(chartData.members)
+      .data(chartData)
       .enter()
       .append("rect")
       .attr("x", generateBarX)
@@ -72,7 +72,7 @@ var LollipopChart = function (selection) {
 
     // append the lollipop stems
     svg.selectAll("line")
-      .data(chartData.members)
+      .data(chartData)
       .enter()
       .append("line")
       .attr("x1", generateLollipopX)
@@ -82,7 +82,7 @@ var LollipopChart = function (selection) {
 
     // append lollipop circles
     svg.selectAll("circle")
-      .data(chartData.members)
+      .data(chartData)
       .enter()
       .append("circle")
       .attr("cx", generateLollipopX)
@@ -111,18 +111,18 @@ var LollipopChart = function (selection) {
     var yScaleRange = [0, svgHeight - chartGutter];
 
     // The default yScale domain is the min/max values of the given data
-    yScale.domain([d3.min(chartData.members, valueAccessor), d3.max(chartData.members, valueAccessor)])
+    yScale.domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor)])
       .range(yScaleRange);
 
     // If the data has an individual scale set the range for it
-    data.members.forEach(function(m) {
+    data.forEach(function(m) {
       if(m.scale) m.scale.range(yScaleRange);
     });
 
     // The xScale is used to position objects on the x axis
-    xScale.domain([0, chartData.members.length])
+    xScale.domain([0, chartData.length])
       .range([0, svgWidth]);
-    colorScale.domain(chartData.members.map(nameAccessor));
+    colorScale.domain(chartData.map(nameAccessor));
 
     // Min/max of chartData may be different from min/max of the chartData member values
     min = chartData.min;
@@ -223,7 +223,7 @@ var LollipopChart = function (selection) {
   }
 
   chart.generateBarWidth = function() {
-    return svgWidth / chartData.members.length - barGap; 
+    return svgWidth / chartData.length - barGap; 
   }
 
   chart.generateBarHeight = function(d) {
