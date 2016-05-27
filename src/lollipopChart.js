@@ -19,11 +19,19 @@ var LollipopChart = function (selection) {
   svgHeight = 200,
   barGap = 15, 
   lollipopRadius = 10,
+  chartGutter = lollipopRadius,
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
   min, max, 
   colorScale = d3.scale.category10();
+
+  // scale accessor will use an individual scale if given, otherwise it uses the chart scale
+  var yScaleAccessor = function(d) { 
+    if(d.scale) return d.scale; 
+
+    return yScale; 
+  };
 
   // tell the chart how to access its data
   var valueAccessor = function(d) { return d.value; };
@@ -54,7 +62,7 @@ var LollipopChart = function (selection) {
 
     // append bars
     svg.selectAll("rect")
-      .data(chartData.members)
+      .data(chartData)
       .enter()
       .append("rect")
       .attr("x", generateBarX)
@@ -64,7 +72,7 @@ var LollipopChart = function (selection) {
 
     // append the lollipop stems
     svg.selectAll("line")
-      .data(chartData.members)
+      .data(chartData)
       .enter()
       .append("line")
       .attr("x1", generateLollipopX)
@@ -74,7 +82,7 @@ var LollipopChart = function (selection) {
 
     // append lollipop circles
     svg.selectAll("circle")
-      .data(chartData.members)
+      .data(chartData)
       .enter()
       .append("circle")
       .attr("cx", generateLollipopX)
@@ -99,17 +107,33 @@ var LollipopChart = function (selection) {
     if(!arguments.length) return chartData;
     chartData = _;
 
-    // Initialize scales
-    yScale.domain([d3.min(chartData.members, valueAccessor), d3.max(chartData.members, valueAccessor)])
-      .range([0, svgHeight]);
-    // the xScale is used to position objects on the x axis
-    xScale.domain([0, chartData.members.length])
-      .range([0, svgWidth]);
-    colorScale.domain(chartData.members.map(nameAccessor));
+    // Initialize scale domains, and override all y scale ranges 
+    var yScaleRange = [0, svgHeight - chartGutter];
 
-    // min/max of chartData may be different from min/max of the chartData member values
+    // The default yScale domain is the min/max values of the given data
+    yScale.domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor)])
+      .range(yScaleRange);
+
+    // If the data has an individual scale set the range for it
+    data.forEach(function(m) {
+      if(m.scale) m.scale.range(yScaleRange);
+    });
+
+    // The xScale is used to position objects on the x axis
+    xScale.domain([0, chartData.length])
+      .range([0, svgWidth]);
+    colorScale.domain(chartData.map(nameAccessor));
+
+    // Min/max of chartData may be different from min/max of the chartData member values
     min = chartData.min;
     max = chartData.max;
+
+    return chart;
+  };
+
+  chart.yScaleAccessor = function(_) {
+    if(!arguments.length) return yScaleAccessor;
+    yScaleAccessor = _;
 
     return chart;
   };
@@ -144,6 +168,8 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  // the yScale gets calculated relative to chart data min/max by default using a linear scale
+  // or set it when using the component if you need a custom scale
   chart.yScale = function(_) {
     if(!arguments.length) return yScale;
     yScale = _;
@@ -169,6 +195,13 @@ var LollipopChart = function (selection) {
     return chart; 
   };
 
+  chart.chartGutter = function(_) {
+    if(!arguments.length) return chartGutter;
+    chartGutter = _;
+
+    return chart;
+  };
+
   function generateLollipopX(d, i) {
     var barX = generateBarX(d, i);
 
@@ -188,40 +221,22 @@ var LollipopChart = function (selection) {
   }
 
   chart.generateBarWidth = function() {
-    return svgWidth / chartData.members.length - barGap; 
+    return svgWidth / chartData.length - barGap; 
   }
 
   chart.generateBarHeight = function(d) {
-    return yScale(comparisonValueAccessor(d));
+    var yScale = yScaleAccessor(d);
+    var comparisonValue = comparisonValueAccessor(d);
+
+    return yScale(comparisonValue);
   };
 
   chart.generateLollipopHeight = function(d) {
-    return adjustLollipopClipping(yScale(valueAccessor(d)));
+    var yScale = yScaleAccessor(d);
+    var value = valueAccessor(d);
+
+    return yScale(value);
   };
-
-  // Check if the value would cause the lollipop to clip
-  // Return the adjusted value
-  function adjustLollipopClipping(value) {
-    var lowExtent = clipExtentLow();
-    var highExtent = clipExtentHigh();
-
-    //value is inbetween lower extent
-    if(value >= lowExtent[0] && value <= lowExtent[1]) return value + lollipopRadius;
-
-    //value is inbetween higher extent
-    if(value >= highExtent[0] && value <= highExtent[1]) return value - lollipopRadius;
-
-    return value;
-  }
-
-  // Get the chart area where the lollipop will clip
-  function clipExtentLow() {
-    return [0, lollipopRadius];
-  }
-
-  function clipExtentHigh() {
-    return [svgHeight - lollipopRadius, svgHeight];
-  }
 
   chart.width = function(_) {
     if(!arguments.length) return svgWidth;
