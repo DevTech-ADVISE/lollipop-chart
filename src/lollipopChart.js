@@ -23,7 +23,7 @@ var LollipopChart = function (selection) {
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
-  min, max, 
+  useCustomScale = false,
   colorScale = d3.scale.category10();
 
   // scale accessor will use an individual scale if given, otherwise it uses the chart scale
@@ -95,7 +95,7 @@ var LollipopChart = function (selection) {
   };
 
   /**
-   * Get/set the data for the LollipopChart instance. Data should be in the form of an object containing min, max, and a data object containing an array of objects with name, value, and comparisonValue. Ex. {min: 5, max: 30, members: [{name: 'USA', value: 17, comparisonValue: 20}, {name: 'Canada', value: 14, comparisonValue: 10}]}
+   * Get/set the data for the LollipopChart instance. Data should be in the form of an array of objects with name, value, and comparisonValue. Ex. [{name: 'USA', value: 17, comparisonValue: 20}, {name: 'Canada', value: 14, comparisonValue: 10}]
    * @method data
    * @memberof LollipopChart
    * @instance
@@ -111,8 +111,9 @@ var LollipopChart = function (selection) {
     var yScaleRange = [0, svgHeight - chartGutter];
 
     // The default yScale domain is the min/max values of the given data
-    yScale.domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor)])
-      .range(yScaleRange);
+    if(!useCustomScale) yScale.domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor)])
+
+    yScale.range(yScaleRange);
 
     // If the data has an individual scale set the range for it
     data.forEach(function(m) {
@@ -123,10 +124,6 @@ var LollipopChart = function (selection) {
     xScale.domain([0, chartData.length])
       .range([0, svgWidth]);
     colorScale.domain(chartData.map(nameAccessor));
-
-    // Min/max of chartData may be different from min/max of the chartData member values
-    min = chartData.min;
-    max = chartData.max;
 
     return chart;
   };
@@ -173,9 +170,8 @@ var LollipopChart = function (selection) {
   chart.yScale = function(_) {
     if(!arguments.length) return yScale;
     yScale = _;
+    useCustomScale = true; // flag to let the chart know to not override the domain
 
-    // set the y scale accessor to use this function because the yscale is getting set
-    yScaleAccessor = defaultYScaleAccessor;
     return chart;
   };
 
