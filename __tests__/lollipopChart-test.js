@@ -44,9 +44,9 @@ describe('LollipopChart', function() {
     });
 
     it('should calculate bar height correctly for the comparisonValue of Bangladesh', function() {
-      var comparisonValue = LollipopChart.comparisonValueAccessor()(getObject('Bangladesh', LollipopChart.nameAccessor()));
-      var expectedBarHeight = yScale(comparisonValue);
-      var generatedBarHeight = LollipopChart.generateBarHeight(comparisonValue);
+      var dataObj = getObject('Bangladesh', LollipopChart.nameAccessor());
+      var expectedBarHeight = yScale(LollipopChart.comparisonValueAccessor()(dataObj));
+      var generatedBarHeight = LollipopChart.generateBarHeight(dataObj);
 
       expect(generatedBarHeight).toEqual(expectedBarHeight);
     });
@@ -134,10 +134,9 @@ function getObject(memberValue, accessorFunc) {
 }
 
 function generatedHeights(memberValue, accessorFunc) {
-  var value = LollipopChart.valueAccessor()(getObject(memberValue, accessorFunc));
-  var comparisonValue = LollipopChart.comparisonValueAccessor()(getObject(memberValue, accessorFunc));
-  var lollipopHeight = LollipopChart.generateLollipopHeight(value);
-  var barHeight = LollipopChart.generateBarHeight(comparisonValue);
+  var dataObj = getObject(memberValue, accessorFunc);
+  var lollipopHeight = LollipopChart.generateLollipopHeight(dataObj);
+  var barHeight = LollipopChart.generateBarHeight(dataObj);
 
   return {barHeight: barHeight, lollipopHeight: lollipopHeight};
 }
