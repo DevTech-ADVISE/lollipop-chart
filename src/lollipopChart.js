@@ -174,6 +174,8 @@ var LollipopChart = function (selection) {
     if(!arguments.length) return yScale;
     yScale = _;
 
+    // set the y scale accessor to use this function because the yscale is getting set
+    yScaleAccessor = defaultYScaleAccessor;
     return chart;
   };
 
