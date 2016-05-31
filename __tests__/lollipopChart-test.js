@@ -1,5 +1,5 @@
 jest.unmock('../src/lollipopChart.js');
-jest.unmock('../node_modules/d3/d3.js')
+jest.unmock('../node_modules/d3/d3.js');
 
 d3 = require('../node_modules/d3/d3.js');
 var LollipopChart = require('../src/lollipopChart.js')('#test');
