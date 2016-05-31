@@ -116,7 +116,7 @@ var LollipopChart = function (selection) {
     yScale.range(yScaleRange);
 
     // If the data has an individual scale set the range for it
-    data.forEach(function(m) {
+    chartData.forEach(function(m) {
       if(m.scale) m.scale.range(yScaleRange);
     });
 
