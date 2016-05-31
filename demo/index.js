@@ -1,20 +1,24 @@
-var lollipopChart = LollipopChart('#myLollipopChart');
+var lollipopChartBasic = LollipopChart('#lollipop-basic');
 var data = [
-    {country: 'Afghanistan', value: 80, average: 60},
-    {country: 'Bangladesh', value: 50, average: 50},
-    {country: 'Bhutan', value: 15, average: 15},
-    {country: 'India', value: 100, average: 100},
-    {country: 'Maldives', value: 25, average: 30},
-    {country: 'Nepal', value: 37, average: 40},
-    {country: 'Pakistan', value: 53, average: 60},
-    {country: 'Sri Lanka', value: 40, average: 65},
+    {name: 'Afghanistan', value: 80, comparisonValue: 60},
+    {name: 'Bangladesh', value: 50, comparisonValue: 50},
+    {name: 'Bhutan', value: 15, comparisonValue: 15},
+    {name: 'India', value: 100, comparisonValue: 100},
+    {name: 'Maldives', value: 25, comparisonValue: 30},
+    {name: 'Nepal', value: 37, comparisonValue: 40},
+    {name: 'Pakistan', value: 53, comparisonValue: 60},
+    {name: 'Sri Lanka', value: 40, comparisonValue: 65},
   ];
 
 // Chart setup
-lollipopChart
-  .nameAccessor(function(d) { return d.country; })
-  .comparisonValueAccessor(function(d) { return d.average; })
-  .yScale(d3.scale.linear().domain([0, 100]))
-  
-// Chart render 
-lollipopChart.render(data);
+lollipopChartBasic
+  .data(data);
+
+
+
+
+
+
+
+// Render the charts
+lollipopChartBasic.render(data);

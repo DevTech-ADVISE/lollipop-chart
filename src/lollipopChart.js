@@ -8,7 +8,7 @@
 
 // d3 is an external, it won't be bundled in
 var d3 = require('d3');
-if(process.env.NODE_ENV !== "test") require('./lollipopChart.scss');
+require('./lollipopChart.scss');
 
 var LollipopChart = function (selection) {
 
@@ -34,9 +34,9 @@ var LollipopChart = function (selection) {
   };
 
   // tell the chart how to access its data
-  var valueAccessor = function(d) { return d.value; };
-  var nameAccessor = function(d) { return d.name; };
-  var comparisonValueAccessor = function(d) { return d.comparisonValue; };
+  var valueAccessorFunc = function(d) { return d.value; };
+  var nameAccessorFunc = function(d) { return d.name; };
+  var comparisonValueAccessorFunc = function(d) { return d.comparisonValue; };
 
   /**
    * Render the LollipopChart instance. Simply renders chart when called with no parameter. Updates data, then renders, if called with parameter
@@ -88,7 +88,7 @@ var LollipopChart = function (selection) {
       .attr("cx", generateLollipopX)
       .attr("cy", generateLollipopY)
       .attr("r", lollipopRadius)
-      .attr("fill", function(d) { return colorScale(nameAccessor(d)); });
+      .attr("fill", function(d) { return colorScale(nameAccessorFunc(d)); });
 
 
 
@@ -114,7 +114,7 @@ var LollipopChart = function (selection) {
     var yScaleRange = [0, svgHeight - chartGutter];
 
     // The default yScale domain is the min/max values of the given data
-    if(!useCustomScale) yScale.domain([d3.min(chartData, valueAccessor), d3.max(chartData, valueAccessor)])
+    if(!useCustomScale) yScale.domain([d3.min(chartData, valueAccessorFunc), d3.max(chartData, valueAccessorFunc)])
 
     yScale.range(yScaleRange);
 
@@ -126,7 +126,7 @@ var LollipopChart = function (selection) {
     // The xScale is used to position objects on the x axis
     xScale.domain([0, chartData.length])
       .range([0, svgWidth]);
-    colorScale.domain(chartData.map(nameAccessor));
+    colorScale.domain(chartData.map(nameAccessorFunc));
 
     return chart;
   };
@@ -155,12 +155,9 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
-  // For internal purposes to positiont he bars and lollipops along the horizontal
-  chart.xScale = function(_) {
-    if(!arguments.length) return xScale;
-    xScale = _;
-
-    return chart;
+  // For internal purposes to position the bars and lollipops along the horizontal
+  chart.xScale = function() {
+    return xScale;
   };
 
   /**
@@ -179,10 +176,6 @@ var LollipopChart = function (selection) {
     useCustomScale = true; // flag to let the chart know to not override the domain
 
     return chart;
-  };
-
-  chart.barWidth = function(_) {
-    return chart.generateBarWidth();
   };
 
   /**
@@ -249,14 +242,14 @@ var LollipopChart = function (selection) {
 
   chart.generateBarHeight = function(d) {
     var yScale = yScaleAccessor(d);
-    var comparisonValue = comparisonValueAccessor(d);
+    var comparisonValue = comparisonValueAccessorFunc(d);
 
     return yScale(comparisonValue);
   };
 
   chart.generateLollipopHeight = function(d) {
     var yScale = yScaleAccessor(d);
-    var value = valueAccessor(d);
+    var value = valueAccessorFunc(d);
 
     return yScale(value);
   };
@@ -303,8 +296,8 @@ var LollipopChart = function (selection) {
    * @return {LollipopChart} [Acts as setter if called with no parameter]
    */
   chart.valueAccessor = function(_) {
-    if(!arguments.length) return valueAccessor;
-    valueAccessor = _;
+    if(!arguments.length) return valueAccessorFunc;
+    valueAccessorFunc = _;
 
     return chart;
   };
@@ -319,8 +312,8 @@ var LollipopChart = function (selection) {
    * @return {LollipopChart} [Acts as setter if called with no parameter]
    */
   chart.nameAccessor = function(_) {
-    if(!arguments.length) return nameAccessor;
-    nameAccessor = _;
+    if(!arguments.length) return nameAccessorFunc;
+    nameAccessorFunc = _;
 
     return chart;
   }
@@ -335,8 +328,8 @@ var LollipopChart = function (selection) {
    * @return {LollipopChart} [Acts as setter if called with no parameter]
    */
   chart.comparisonValueAccessor = function(_) {
-    if(!arguments.length) return comparisonValueAccessor;
-    comparisonValueAccessor = _;
+    if(!arguments.length) return comparisonValueAccessorFunc;
+    comparisonValueAccessorFunc = _;
 
     return chart; 
   };
