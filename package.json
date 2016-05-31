@@ -4,6 +4,7 @@
   "description": "D3.js lollipop chart for comparing individual values to group averages",
   "main": "build/lollipopChart.js",
   "scripts": {
+    "coverage": "BABEL_DISABLE_CACHE=1 NODE_ENV=test jest --coverage",
     "dev": "webpack-dev-server --inline --hot --config webpack.demo.config.js --content-base demo/",
     "dist": "NODE_ENV=production webpack -p --config webpack.dist.config.js",
     "doc": "jsdoc2md --template README.hbs lollpopChart.js > README.md",

@@ -95,7 +95,10 @@ var LollipopChart = function (selection) {
   };
 
   /**
-   * Get/set the data for the LollipopChart instance. Data should be in the form of an array of objects with name, value, and comparisonValue. Ex. [{name: 'USA', value: 17, comparisonValue: 20}, {name: 'Canada', value: 14, comparisonValue: 10}]
+   * Get/set the data for the LollipopChart instance. 
+   * Data should be in the form of an array of objects with name, value, and comparisonValue. Ex. [{name: 'USA', value: 17, comparisonValue: 20}, {name: 'Canada', value: 14, comparisonValue: 10}]
+   * Data can also specify a scale to use for only that data object like {name: 'Alberia', value: 23, comparisonValue: 44, scale: d3.scale.linear().domain([0, 50])}
+   * For individual scales, a domain must be set for that scale. 
    * @method data
    * @memberof LollipopChart
    * @instance
@@ -116,7 +119,7 @@ var LollipopChart = function (selection) {
     yScale.range(yScaleRange);
 
     // If the data has an individual scale set the range for it
-    data.forEach(function(m) {
+    chartData.forEach(function(m) {
       if(m.scale) m.scale.range(yScaleRange);
     });
 
@@ -128,6 +131,7 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  // This function returns a y-scale for a given data
   chart.yScaleAccessor = function(_) {
     if(!arguments.length) return yScaleAccessor;
     yScaleAccessor = _;
@@ -135,6 +139,15 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  /**
+   * Get/set the color scale for the LollipopChart instance. The color scale is set by default to d3.scale.category10
+   * @method colorScale
+   * @memberof LollipopChart
+   * @instance
+   * @param  {Object} [scale]
+   * @return {Object} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.colorScale = function(_) {
     if(!arguments.length) return colorScale;
     colorScale = _;
@@ -142,22 +155,7 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
-  // For convenience 
-  chart.colorDomain = function(_) {
-    if(!arguments.length) return colorScale.domain();
-    colorScale.domain(_);
-
-    return chart;
-  };
-
-  // For convenience
-  chart.colorRange = function(_) {
-    if(!arguments.length) return colorScale.range();
-    colorScale.range(_);
-
-    return chart;
-  };
-
+  // For internal purposes to positiont he bars and lollipops along the horizontal
   chart.xScale = function(_) {
     if(!arguments.length) return xScale;
     xScale = _;
@@ -165,8 +163,16 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
-  // the yScale gets calculated relative to chart data min/max by default using a linear scale
-  // or set it when using the component if you need a custom scale
+  /**
+   * Get/set the y-scale for the LollipopChart instance. If this is not set, the chart will calculate the scale domain as the min and max of the data values passed into the chart. 
+   * Set this scale if you need a global scale. Note that individual scales are allowed if any data object has a scale property on it like {name: 'Bob', value: 25, comparisonValue: 45, scale: d3.scale.linear()}
+   * @method yScale
+   * @memberof LollipopChart
+   * @instance
+   * @param  {Object} [d3 scale]
+   * @return {Object} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.yScale = function(_) {
     if(!arguments.length) return yScale;
     yScale = _;
@@ -179,6 +185,15 @@ var LollipopChart = function (selection) {
     return chart.generateBarWidth();
   };
 
+  /**
+   * Get/set the gap between bars for the LollipopChart instance. 
+   * @method barGap
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [barGap]
+   * @return {number} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.barGap = function(_) {
     if(!arguments.length) return barGap;
     barGap = _;
@@ -186,6 +201,15 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  /**
+   * Get/set the lollipop radius for the LollipopChart instance. 
+   * @method lollipopRadius
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [radius]
+   * @return {number} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.lollipopRadius = function(_) {
     if(!arguments.length) return lollipopRadius;
     lollipopRadius = _;
@@ -193,6 +217,7 @@ var LollipopChart = function (selection) {
     return chart; 
   };
 
+  // The chart adds space at the top so the lollipop doesn't get clipped by the chart space
   chart.chartGutter = function(_) {
     if(!arguments.length) return chartGutter;
     chartGutter = _;
@@ -236,6 +261,15 @@ var LollipopChart = function (selection) {
     return yScale(value);
   };
 
+  /**
+   * Get/set the chart width for the LollipopChart instance. 
+   * @method width
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [width]
+   * @return {number} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.width = function(_) {
     if(!arguments.length) return svgWidth;
     svgWidth = _;
@@ -243,6 +277,15 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  /**
+   * Get/set the chart height for the LollipopChart instance. 
+   * @method height
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [height]
+   * @return {number} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.height = function(_) {
     if(!arguments.length) return svgHeight;
     svgHeight = _;
@@ -250,6 +293,15 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  /**
+   * Get/set the value accessor for the LollipopChart instance. 
+   * @method valueAccessor
+   * @memberof LollipopChart
+   * @instance
+   * @param  {function} [valueAccessorFunc]
+   * @return {function} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.valueAccessor = function(_) {
     if(!arguments.length) return valueAccessor;
     valueAccessor = _;
@@ -257,6 +309,15 @@ var LollipopChart = function (selection) {
     return chart;
   };
 
+  /**
+   * Get/set the name accessor for the LollipopChart instance. 
+   * @method nameAccessor
+   * @memberof LollipopChart
+   * @instance
+   * @param  {function} [nameAccessorFunc]
+   * @return {function} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.nameAccessor = function(_) {
     if(!arguments.length) return nameAccessor;
     nameAccessor = _;
@@ -264,6 +325,15 @@ var LollipopChart = function (selection) {
     return chart;
   }
 
+  /**
+   * Get/set the comparison value accessor for the LollipopChart instance. 
+   * @method comparisonValueAccessor
+   * @memberof LollipopChart
+   * @instance
+   * @param  {function} [comparisonValueAccessorFunc]
+   * @return {function} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   */
   chart.comparisonValueAccessor = function(_) {
     if(!arguments.length) return comparisonValueAccessor;
     comparisonValueAccessor = _;
