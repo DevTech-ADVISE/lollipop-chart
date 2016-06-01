@@ -39,7 +39,7 @@ var LollipopChart = function (selection) {
   var comparisonValueAccessorFunc = function(d) { return d.comparisonValue; };
 
   /**
-   * Render the LollipopChart instance. Simply renders chart when called with no parameter. Updates data, then renders, if called with parameter
+   * Render the LollipopChart instance. Simply renders chart when called with parameter. Updates data, then renders, if called with parameter
    * @method render
    * @memberof LollipopChart
    * @instance
@@ -104,7 +104,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {Object} [data]
    * @return {Object} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.data = function(_) {
     if(!arguments.length) return chartData;
@@ -146,7 +146,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {Object} [scale]
    * @return {Object} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.colorScale = function(_) {
     if(!arguments.length) return colorScale;
@@ -168,7 +168,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {Object} [d3 scale]
    * @return {Object} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.yScale = function(_) {
     if(!arguments.length) return yScale;
@@ -185,7 +185,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {number} [barGap]
    * @return {number} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.barGap = function(_) {
     if(!arguments.length) return barGap;
@@ -201,7 +201,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {number} [radius]
    * @return {number} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.lollipopRadius = function(_) {
     if(!arguments.length) return lollipopRadius;
@@ -262,7 +262,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {number} [width]
    * @return {number} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.width = function(_) {
     if(!arguments.length) return svgWidth;
@@ -278,7 +278,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {number} [height]
    * @return {number} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.height = function(_) {
     if(!arguments.length) return svgHeight;
@@ -294,7 +294,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {function} [valueAccessorFunc]
    * @return {function} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.valueAccessor = function(_) {
     if(!arguments.length) return valueAccessorFunc;
@@ -310,7 +310,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {function} [nameAccessorFunc]
    * @return {function} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.nameAccessor = function(_) {
     if(!arguments.length) return nameAccessorFunc;
@@ -326,7 +326,7 @@ var LollipopChart = function (selection) {
    * @instance
    * @param  {function} [comparisonValueAccessorFunc]
    * @return {function} [Acts as getter if called with no parameter]
-   * @return {LollipopChart} [Acts as setter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.comparisonValueAccessor = function(_) {
     if(!arguments.length) return comparisonValueAccessorFunc;

@@ -83,7 +83,7 @@ Lollipop chart implementation.
 <a name="LollipopChart+render"></a>
 
 ### lollipopChart.render([data]) ⇒ <code>[LollipopChart](#LollipopChart)</code>
-Render the LollipopChart instance. Simply renders chart when called with no parameter. Updates data, then renders, if called with parameter
+Render the LollipopChart instance. Simply renders chart when called with parameter. Updates data, then renders, if called with parameter
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
 
@@ -100,7 +100,7 @@ Data can also specify a scale to use for only that data object like {name: 'Albe
 For individual scales, a domain must be set for that scale.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -112,7 +112,7 @@ For individual scales, a domain must be set for that scale.
 Get/set the color scale for the LollipopChart instance. The color scale is set by default to d3.scale.category10
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -125,7 +125,7 @@ Get/set the y-scale for the LollipopChart instance. If this is not set, the char
 Set this scale if you need a global scale. Note that individual scales are allowed if any data object has a scale property on it like {name: 'Bob', value: 25, comparisonValue: 45, scale: d3.scale.linear()}
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -137,7 +137,7 @@ Set this scale if you need a global scale. Note that individual scales are allow
 Get/set the gap between bars for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -149,7 +149,7 @@ Get/set the gap between bars for the LollipopChart instance.
 Get/set the lollipop radius for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -161,7 +161,7 @@ Get/set the lollipop radius for the LollipopChart instance.
 Get/set the chart width for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -173,7 +173,7 @@ Get/set the chart width for the LollipopChart instance.
 Get/set the chart height for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>number</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -185,7 +185,7 @@ Get/set the chart height for the LollipopChart instance.
 Get/set the value accessor for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>function</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>function</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -197,7 +197,7 @@ Get/set the value accessor for the LollipopChart instance.
 Get/set the name accessor for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>function</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>function</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
@@ -209,7 +209,7 @@ Get/set the name accessor for the LollipopChart instance.
 Get/set the comparison value accessor for the LollipopChart instance.
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
-**Returns**: <code>function</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with no parameter]  
+**Returns**: <code>function</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
