@@ -54,7 +54,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
+	/**
 	 * Lollipop chart implementation.
 	 *
 	 * @class LollipopChart
@@ -63,8 +63,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	
 	// d3 is an external, it won't be bundled in
-	var d3 = __webpack_require__(2);
-	if (process.env.NODE_ENV !== "test") __webpack_require__(3);
+	var d3 = __webpack_require__(1);
+	__webpack_require__(2);
 	
 	var LollipopChart = function (selection) {
 	
@@ -75,26 +75,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	      svgHeight = 200,
 	      barGap = 15,
 	      lollipopRadius = 10,
+	      chartGutter = lollipopRadius,
 	      chartData = {},
 	      yScale = d3.scale.linear(),
 	      xScale = d3.scale.linear(),
-	      min,
-	      max,
+	      useCustomScale = false,
 	      colorScale = d3.scale.category10();
 	
+	  // scale accessor will use an individual scale if given, otherwise it uses the chart scale
+	  var yScaleAccessor = function (d) {
+	    if (d.scale) return d.scale;
+	
+	    return yScale;
+	  };
+	
 	  // tell the chart how to access its data
-	  var valueAccessor = function (d) {
+	  var valueAccessorFunc = function (d) {
 	    return d.value;
 	  };
-	  var nameAccessor = function (d) {
+	  var nameAccessorFunc = function (d) {
 	    return d.name;
 	  };
-	  var comparisonValueAccessor = function (d) {
+	  var comparisonValueAccessorFunc = function (d) {
 	    return d.comparisonValue;
 	  };
 	
 	  /**
-	   * Render the LollipopChart instance. Simply renders chart when called with no parameter. Updates data, then renders, if called with parameter
+	   * Render the LollipopChart instance. Simply renders chart when called with parameter. Updates data, then renders, if called with parameter
 	   * @method render
 	   * @memberof LollipopChart
 	   * @instance
@@ -116,43 +123,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	    svg.attr("height", svgHeight);
 	
 	    // append bars
-	    svg.selectAll("rect").data(chartData.members).enter().append("rect").attr("x", generateBarX).attr("y", generateBarY).attr("width", chart.generateBarWidth).attr("height", chart.generateBarHeight);
+	    svg.selectAll("rect").data(chartData).enter().append("rect").attr("x", generateBarX).attr("y", generateBarY).attr("width", chart.generateBarWidth).attr("height", chart.generateBarHeight);
 	
 	    // append the lollipop stems
-	    svg.selectAll("line").data(chartData.members).enter().append("line").attr("x1", generateLollipopX).attr("x2", generateLollipopX).attr("y1", svgHeight).attr("y2", generateLollipopY);
+	    svg.selectAll("line").data(chartData).enter().append("line").attr("x1", generateLollipopX).attr("x2", generateLollipopX).attr("y1", svgHeight).attr("y2", generateLollipopY);
 	
 	    // append lollipop circles
-	    svg.selectAll("circle").data(chartData.members).enter().append("circle").attr("cx", generateLollipopX).attr("cy", generateLollipopY).attr("r", lollipopRadius).attr("fill", function (d) {
-	      return colorScale(nameAccessor(d));
+	    svg.selectAll("circle").data(chartData).enter().append("circle").attr("cx", generateLollipopX).attr("cy", generateLollipopY).attr("r", lollipopRadius).attr("fill", function (d) {
+	      return colorScale(nameAccessorFunc(d));
 	    });
 	  };
 	
 	  /**
-	   * Get/set the data for the LollipopChart instance. Data should be in the form of an object containing min, max, and a data object containing an array of objects with name, value, and comparisonValue. Ex. {min: 5, max: 30, members: [{name: 'USA', value: 17, comparisonValue: 20}, {name: 'Canada', value: 14, comparisonValue: 10}]}
+	   * Get/set the data for the LollipopChart instance. 
+	   * Data should be in the form of an array of objects with name, value, and comparisonValue. Ex. [{name: 'USA', value: 17, comparisonValue: 20}, {name: 'Canada', value: 14, comparisonValue: 10}]
+	   * Data can also specify a scale to use for only that data object like {name: 'Alberia', value: 23, comparisonValue: 44, scale: d3.scale.linear().domain([0, 50])}
+	   * For individual scales, a domain must be set for that scale. 
 	   * @method data
 	   * @memberof LollipopChart
 	   * @instance
 	   * @param  {Object} [data]
 	   * @return {Object} [Acts as getter if called with no parameter]
-	   * @return {LollipopChart} [Acts as setter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
 	   */
 	  chart.data = function (_) {
 	    if (!arguments.length) return chartData;
 	    chartData = _;
 	
-	    // Initialize scales
-	    yScale.domain([d3.min(chartData.members, valueAccessor), d3.max(chartData.members, valueAccessor)]).range([0, svgHeight]);
-	    // the xScale is used to position objects on the x axis
-	    xScale.domain([0, chartData.members.length]).range([0, svgWidth]);
-	    colorScale.domain(chartData.members.map(nameAccessor));
+	    // Initialize scale domains, and override all y scale ranges
+	    var yScaleRange = [0, svgHeight - chartGutter];
 	
-	    // min/max of chartData may be different from min/max of the chartData member values
-	    min = chartData.min;
-	    max = chartData.max;
+	    // The default yScale domain is the min/max values of the given data
+	    if (!useCustomScale) yScale.domain([d3.min(chartData, valueAccessorFunc), d3.max(chartData, valueAccessorFunc)]);
+	
+	    yScale.range(yScaleRange);
+	
+	    // If the data has an individual scale set the range for it
+	    chartData.forEach(function (m) {
+	      if (m.scale) m.scale.range(yScaleRange);
+	    });
+	
+	    // The xScale is used to position objects on the x axis
+	    xScale.domain([0, chartData.length]).range([0, svgWidth]);
+	    colorScale.domain(chartData.map(nameAccessorFunc));
 	
 	    return chart;
 	  };
 	
+	  // This function returns a y-scale for a given data
+	  chart.yScaleAccessor = function (_) {
+	    if (!arguments.length) return yScaleAccessor;
+	    yScaleAccessor = _;
+	
+	    return chart;
+	  };
+	
+	  /**
+	   * Get/set the color scale for the LollipopChart instance. The color scale is set by default to d3.scale.category10
+	   * @method colorScale
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {Object} [scale]
+	   * @return {Object} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.colorScale = function (_) {
 	    if (!arguments.length) return colorScale;
 	    colorScale = _;
@@ -160,40 +194,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return chart;
 	  };
 	
-	  // For convenience
-	  chart.colorDomain = function (_) {
-	    if (!arguments.length) return colorScale.domain();
-	    colorScale.domain(_);
-	
-	    return chart;
+	  // For internal purposes to position the bars and lollipops along the horizontal
+	  chart.xScale = function () {
+	    return xScale;
 	  };
 	
-	  // For convenience
-	  chart.colorRange = function (_) {
-	    if (!arguments.length) return colorScale.range();
-	    colorScale.range(_);
-	
-	    return chart;
-	  };
-	
-	  chart.xScale = function (_) {
-	    if (!arguments.length) return xScale;
-	    xScale = _;
-	
-	    return chart;
-	  };
-	
+	  /**
+	   * Get/set the y-scale for the LollipopChart instance. If this is not set, the chart will calculate the scale domain as the min and max of the data values passed into the chart. 
+	   * Set this scale if you need a global scale. Note that individual scales are allowed if any data object has a scale property on it like {name: 'Bob', value: 25, comparisonValue: 45, scale: d3.scale.linear()}
+	   * @method yScale
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {Object} [d3 scale]
+	   * @return {Object} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.yScale = function (_) {
 	    if (!arguments.length) return yScale;
 	    yScale = _;
+	    useCustomScale = true; // flag to let the chart know to not override the domain
 	
 	    return chart;
 	  };
 	
-	  chart.barWidth = function (_) {
-	    return chart.generateBarWidth();
-	  };
-	
+	  /**
+	   * Get/set the gap between bars for the LollipopChart instance. 
+	   * @method barGap
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {number} [barGap]
+	   * @return {number} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.barGap = function (_) {
 	    if (!arguments.length) return barGap;
 	    barGap = _;
@@ -201,9 +233,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return chart;
 	  };
 	
+	  /**
+	   * Get/set the lollipop radius for the LollipopChart instance. 
+	   * @method lollipopRadius
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {number} [radius]
+	   * @return {number} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.lollipopRadius = function (_) {
 	    if (!arguments.length) return lollipopRadius;
 	    lollipopRadius = _;
+	    chartGutter = _;
+	
+	    return chart;
+	  };
+	
+	  // The chart adds space at the top so the lollipop doesn't get clipped by the chart space
+	  chart.chartGutter = function (_) {
+	    if (!arguments.length) return chartGutter;
+	    chartGutter = _;
 	
 	    return chart;
 	  };
@@ -227,41 +277,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  chart.generateBarWidth = function () {
-	    return svgWidth / chartData.members.length - barGap;
+	    return svgWidth / chartData.length - barGap;
 	  };
 	
 	  chart.generateBarHeight = function (d) {
-	    return yScale(comparisonValueAccessor(d));
+	    var yScale = yScaleAccessor(d);
+	    var comparisonValue = comparisonValueAccessorFunc(d);
+	
+	    return yScale(comparisonValue);
 	  };
 	
 	  chart.generateLollipopHeight = function (d) {
-	    return adjustLollipopClipping(yScale(valueAccessor(d)));
+	    var yScale = yScaleAccessor(d);
+	    var value = valueAccessorFunc(d);
+	
+	    return yScale(value);
 	  };
 	
-	  // Check if the value would cause the lollipop to clip
-	  // Return the adjusted value
-	  function adjustLollipopClipping(value) {
-	    var lowExtent = clipExtentLow();
-	    var highExtent = clipExtentHigh();
-	
-	    //value is inbetween lower extent
-	    if (value >= lowExtent[0] && value <= lowExtent[1]) return value + lollipopRadius;
-	
-	    //value is inbetween higher extent
-	    if (value >= highExtent[0] && value <= highExtent[1]) return value - lollipopRadius;
-	
-	    return value;
-	  }
-	
-	  // Get the chart area where the lollipop will clip
-	  function clipExtentLow() {
-	    return [0, lollipopRadius];
-	  }
-	
-	  function clipExtentHigh() {
-	    return [svgHeight - lollipopRadius, svgHeight];
-	  }
-	
+	  /**
+	   * Get/set the chart width for the LollipopChart instance. 
+	   * @method width
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {number} [width]
+	   * @return {number} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.width = function (_) {
 	    if (!arguments.length) return svgWidth;
 	    svgWidth = _;
@@ -269,6 +310,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return chart;
 	  };
 	
+	  /**
+	   * Get/set the chart height for the LollipopChart instance. 
+	   * @method height
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {number} [height]
+	   * @return {number} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.height = function (_) {
 	    if (!arguments.length) return svgHeight;
 	    svgHeight = _;
@@ -276,23 +326,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return chart;
 	  };
 	
+	  /**
+	   * Get/set the value accessor for the LollipopChart instance. 
+	   * @method valueAccessor
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {function} [valueAccessorFunc]
+	   * @return {function} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.valueAccessor = function (_) {
-	    if (!arguments.length) return valueAccessor;
-	    valueAccessor = _;
+	    if (!arguments.length) return valueAccessorFunc;
+	    valueAccessorFunc = _;
 	
 	    return chart;
 	  };
 	
+	  /**
+	   * Get/set the name accessor for the LollipopChart instance. 
+	   * @method nameAccessor
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {function} [nameAccessorFunc]
+	   * @return {function} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.nameAccessor = function (_) {
-	    if (!arguments.length) return nameAccessor;
-	    nameAccessor = _;
+	    if (!arguments.length) return nameAccessorFunc;
+	    nameAccessorFunc = _;
 	
 	    return chart;
 	  };
 	
+	  /**
+	   * Get/set the comparison value accessor for the LollipopChart instance. 
+	   * @method comparisonValueAccessor
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {function} [comparisonValueAccessorFunc]
+	   * @return {function} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
 	  chart.comparisonValueAccessor = function (_) {
-	    if (!arguments.length) return comparisonValueAccessor;
-	    comparisonValueAccessor = _;
+	    if (!arguments.length) return comparisonValueAccessorFunc;
+	    comparisonValueAccessorFunc = _;
 	
 	    return chart;
 	  };
@@ -301,110 +378,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	
 	module.exports = LollipopChart;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	// shim for using process in browser
-	
-	var process = module.exports = {};
-	var queue = [];
-	var draining = false;
-	var currentQueue;
-	var queueIndex = -1;
-	
-	function cleanUpNextTick() {
-	    if (!draining || !currentQueue) {
-	        return;
-	    }
-	    draining = false;
-	    if (currentQueue.length) {
-	        queue = currentQueue.concat(queue);
-	    } else {
-	        queueIndex = -1;
-	    }
-	    if (queue.length) {
-	        drainQueue();
-	    }
-	}
-	
-	function drainQueue() {
-	    if (draining) {
-	        return;
-	    }
-	    var timeout = setTimeout(cleanUpNextTick);
-	    draining = true;
-	
-	    var len = queue.length;
-	    while(len) {
-	        currentQueue = queue;
-	        queue = [];
-	        while (++queueIndex < len) {
-	            if (currentQueue) {
-	                currentQueue[queueIndex].run();
-	            }
-	        }
-	        queueIndex = -1;
-	        len = queue.length;
-	    }
-	    currentQueue = null;
-	    draining = false;
-	    clearTimeout(timeout);
-	}
-	
-	process.nextTick = function (fun) {
-	    var args = new Array(arguments.length - 1);
-	    if (arguments.length > 1) {
-	        for (var i = 1; i < arguments.length; i++) {
-	            args[i - 1] = arguments[i];
-	        }
-	    }
-	    queue.push(new Item(fun, args));
-	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
-	    }
-	};
-	
-	// v8 likes predictible objects
-	function Item(fun, array) {
-	    this.fun = fun;
-	    this.array = array;
-	}
-	Item.prototype.run = function () {
-	    this.fun.apply(null, this.array);
-	};
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-	process.version = ''; // empty string to avoid regexp issues
-	process.versions = {};
-	
-	function noop() {}
-	
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-	
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-	
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-	process.umask = function() { return 0; };
-
-
-/***/ },
-/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
@@ -9963,16 +9939,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 /***/ },
-/* 3 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(4);
+	var content = __webpack_require__(3);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(6)(content, {});
+	var update = __webpack_require__(5)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -9989,10 +9965,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 4 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(5)();
+	exports = module.exports = __webpack_require__(4)();
 	// imports
 	
 	
@@ -10003,7 +9979,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 	/*
@@ -10059,7 +10035,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*

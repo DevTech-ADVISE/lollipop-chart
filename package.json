@@ -2,7 +2,7 @@
   "name": "lollipop-chart",
   "version": "1.0.0",
   "description": "D3.js lollipop chart for comparing individual values to group averages",
-  "main": "build/lollipopChart.js",
+  "main": "dist/lollipopChart.js",
   "scripts": {
     "coverage": "BABEL_DISABLE_CACHE=1 NODE_ENV=test jest --coverage",
     "dev": "webpack-dev-server --inline --hot --config webpack.demo.config.js --content-base demo/",
