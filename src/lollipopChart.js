@@ -206,6 +206,7 @@ var LollipopChart = function (selection) {
   chart.lollipopRadius = function(_) {
     if(!arguments.length) return lollipopRadius;
     lollipopRadius = _;
+    chartGutter = _;
 
     return chart; 
   };
