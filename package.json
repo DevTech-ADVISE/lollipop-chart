@@ -7,7 +7,7 @@
     "coverage": "BABEL_DISABLE_CACHE=1 NODE_ENV=test jest --coverage",
     "dev": "webpack-dev-server --inline --hot --config webpack.demo.config.js --content-base demo/",
     "dist": "NODE_ENV=production webpack -p --config webpack.dist.config.js",
-    "doc": "jsdoc2md --template README.hbs lollpopChart.js > README.md",
+    "doc": "jsdoc2md --template README.hbs src/lollipopChart.js > README.md --verbose",
     "test": "BABEL_DISABLE_CACHE=1 NODE_ENV=test jest"
   },
   "repository": {
@@ -40,5 +40,14 @@
   },
   "dependencies": {
     "d3": "^3.5.17"
+  }, 
+  "jest": {
+    "moduleNameMapper": {
+      "^.+\\.(scss|css)$": "<rootDir>/__mocks__/styleMock.js"
+    },
+    "collectCoverage": true,
+    "collectCoverageOnlyFrom": {
+      "<rootDir>/src/lollipopChart.js": true
+    }
   }
 }
