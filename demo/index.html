@@ -3,18 +3,124 @@
 	<head><title>Lollipop Demo</title>
 		<script src="d3.js" charset="utf-8"></script>
 		<script src="lollipopChart.js" charset="utf-8"></script>
+		<link rel="stylesheet" href="css/normalize.css" />
+  		<link rel="stylesheet" href="css/skeleton.css" />
+  		<link rel="stylesheet" href="css/prism.css" />
 		<style>
+			h2 {
+				display: inline-block;
+			}
 			svg {
 				border: 1px solid #bbbbbb;
 				border-radius: 2px;
 			}
+
+			pre.language-js {
+				background-color: #ffffff;
+				padding: 0;
+				margin: 0;
+			}
+
+			pre code.language-js {
+				background-color: #F1F1F1;
+				overflow: auto;
+				height: 300px;
+				padding-top: 0px;
+			}
+
+			.container {
+				width: 80%;
+				max-width: 100%;
+			}
 		</style>
+		
 	</head>
 <body>
-	<h2>Lollipop Demo</h2>
-	<div id="myLollipopChart"></div>
+	<div class="container">
+		<h2>Lollipop Demo</h2> (with the three scale configuration use cases)
+		<div class="row">
+			<div class="six columns">
+				<h6>Let the chart make scale calculations based on the data</h6>
+				<div id="lollipop-chart-basic"></div>
+			</div>
+			<div class="six columns">
+				<pre>
+					<code class="language-js">
+// Example code: 
+var lollipopChartBasic = LollipopChart('#lollipop-chart-basic');
+var gradesPerName = [
+    {name: 'Bobby', value: 80, comparisonValue: 80},
+    {name: 'Jane', value: 79, comparisonValue: 68},
+    {name: 'Fred', value: 70, comparisonValue: 78},
+    {name: 'Alan', value: 75, comparisonValue: 64},
+    {name: 'Jeeves', value: 75, comparisonValue: 85},
+    {name: 'Mary', value: 67, comparisonValue: 70},
+    {name: 'Marsha', value: 60, comparisonValue: 68},
+    {name: 'Andy', value: 100, comparisonValue: 100},
+  ];
+lollipopChartBasic
+	.render(gradesPerName);
+					</code>
+				</pre>
+			</div>
+		</div>
+		<div class="row">
+			<div class="six columns">
+				<h6>Set a specific scale to use</h6>
+				<div id="lollipop-chart-scale"></div>
+			</div>
+			<div class="six columns">
+				<pre>
+					<code class="language-js">
+// Example code: 
+var lollipopChartWithScale = LollipopChart('#lollipop-chart-scale');
+var gradesPerName = [
+    {name: 'Bobby', value: 80, comparisonValue: 80},
+    {name: 'Jane', value: 79, comparisonValue: 68},
+    {name: 'Fred', value: 70, comparisonValue: 78},
+    {name: 'Alan', value: 75, comparisonValue: 64},
+    {name: 'Jeeves', value: 75, comparisonValue: 85},
+    {name: 'Mary', value: 67, comparisonValue: 70},
+    {name: 'Marsha', value: 60, comparisonValue: 68},
+    {name: 'Andy', value: 100, comparisonValue: 100},
+  ];
+lollipopChartBasic
+	.yScale(d3.scale.linear().domain([50, 100]))
+	.render(gradesPerName);
+					</code>
+				</pre>
+			</div>
+		</div>
+		<div class="row">
+			<div class="six columns">
+				<h6>Pass the chart data that has individual scales for each data</h6>
+				<div id="lollipop-chart-individual"></div>
+			</div>
+			<div class="six columns">
+				<pre>
+					<code class="language-js">
+// Example code:
+var lollipopChartWithIndividualScales = LollipopChart('#lollipop-chart-individual');
+var dataIndividualScales = [
+  {name: 'Afghanistan', value: 80, comparisonValue: 60, scale: d3.scale.linear().domain([40, 100])},
+  {name: 'Bangladesh', value: 50, comparisonValue: 50, scale: d3.scale.linear().domain([40, 60])},
+  {name: 'Bhutan', value: 5, comparisonValue: 35, scale: d3.scale.linear().domain([0, 50])},
+  {name: 'India', value: 100, comparisonValue: 55, scale: d3.scale.linear().domain([40, 100])},
+  {name: 'Maldives', value: 25, comparisonValue: 30, scale: d3.scale.linear().domain([0, 50])},
+  {name: 'Nepal', value: 35, comparisonValue: 40, scale: d3.scale.linear().domain([35, 60])},
+  {name: 'Pakistan', value: 50, comparisonValue: 60, scale: d3.scale.linear().domain([40, 100])},
+  {name: 'Sri Lanka', value: 65, comparisonValue: 50, scale: d3.scale.linear().domain([40, 100])},
+];
 
+lollipopChartWithIndividualScales.render(dataIndividualScales);
+					</code>
+				</pre>
+			</div>
+		</div>
+	</div>
 	
-</body>
 <script src="index.js"></script>
+<script src="prism.js"></script>
+</body>
+
 </html>
