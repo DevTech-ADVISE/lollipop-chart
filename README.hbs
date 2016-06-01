@@ -2,9 +2,11 @@
 
 The lollipop chart provides a visualization of values compared to their own comparison value. The value is the lollipop and the comparison is the bar. 
 
+Look at the [Demo](http://BI.github.io/lollipop-chart)
+
 # Getting Started
 
-For now, you must use a script tag to include lollipopChart. D3 must be available in the global namespace as well. Download lollipopChart.js, put something like the following in your <head> and you should be good to go.
+LollipopChart is a UMD module, you can add the javascript in a scripts tag or require it using something like webpack. D3 must either be available in the global namespace or bundled in with your bundle tool. For the global namespace method download lollipopChart.js, put something like the following in your <head> and you should be good to go.
 
 ```
 <script src="d3.js" charset="utf-8"></script>
@@ -33,8 +35,20 @@ HTML would look something like this
 And the index.js here would contain something like this
 
 ```
-//replaceme
+var lollipopChart = LollipopChart('#myLollipopChart'); //you can also use the commonJs way if you're bundling everything with something like webpack
+var gradesPerName = [
+    {name: 'Bobby', value: 80, comparisonValue: 80},
+    {name: 'Jane', value: 79, comparisonValue: 68},
+    {name: 'Fred', value: 70, comparisonValue: 78},
+    {name: 'Alan', value: 75, comparisonValue: 64},
+    {name: 'Jeeves', value: 75, comparisonValue: 85},
+    {name: 'Mary', value: 67, comparisonValue: 70},
+    {name: 'Marsha', value: 60, comparisonValue: 68},
+    {name: 'Andy', value: 100, comparisonValue: 100},
+  ];
+lollipopChartBasic
+	.render(gradesPerName);
 ```
 
 # API Reference
-{{#class name="lollipopChart"}}{{>docs}}{{/class}}
+{{#class name="LollipopChart"}}{{>docs}}{{/class}}
