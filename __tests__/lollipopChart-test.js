@@ -277,6 +277,13 @@ describe('LollipopChart', function() {
       expect(comparisonValue).toEqual(data[1].comparisonValue);
     });
 
+    it('should have a setter getter for transition duration', function() {
+      var transitionDuration = 500;
+      LollipopChart.transitionDuration(transitionDuration);
+
+      expect(LollipopChart.transitionDuration()).toEqual(transitionDuration);
+    });
+
   });
 
   // --------------------------------------------------------------------------

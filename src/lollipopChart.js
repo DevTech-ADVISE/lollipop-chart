@@ -24,7 +24,8 @@ var LollipopChart = function (selection) {
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
   useCustomScale = false,
-  colorScale = d3.scale.category10();
+  colorScale = d3.scale.category10(),
+  transitionDuration = 750;
 
   // scale accessor will use an individual scale if given, otherwise it uses the chart scale
   var yScaleAccessor = function(d) { 
@@ -66,9 +67,12 @@ var LollipopChart = function (selection) {
       .enter()
       .append("rect")
       .attr("x", generateBarX)
-      .attr("y", generateBarY)
       .attr("width", chart.generateBarWidth)
       .attr("height", chart.generateBarHeight)
+      .attr("y", svgHeight)
+    .transition()
+      .duration(transitionDuration)
+      .attr("y", generateBarY)
 
     // append the lollipop stems
     svg.selectAll("line")
@@ -78,6 +82,9 @@ var LollipopChart = function (selection) {
       .attr("x1", generateLollipopX)
       .attr("x2", generateLollipopX)
       .attr("y1", svgHeight)
+      .attr("y2", svgHeight)
+    .transition()
+      .duration(transitionDuration)
       .attr("y2", generateLollipopY);
 
     // append lollipop circles
@@ -86,10 +93,12 @@ var LollipopChart = function (selection) {
       .enter()
       .append("circle")
       .attr("cx", generateLollipopX)
-      .attr("cy", generateLollipopY)
       .attr("r", lollipopRadius)
-      .attr("fill", function(d) { return colorScale(nameAccessorFunc(d)); });
-
+      .attr("fill", function(d) { return colorScale(nameAccessorFunc(d)); })
+      .attr("cy", svgHeight)
+    .transition()
+      .duration(transitionDuration)
+      .attr("cy", generateLollipopY)
 
 
   };
@@ -331,6 +340,22 @@ var LollipopChart = function (selection) {
   chart.comparisonValueAccessor = function(_) {
     if(!arguments.length) return comparisonValueAccessorFunc;
     comparisonValueAccessorFunc = _;
+
+    return chart; 
+  };
+
+  /**
+   * Get/set the transition duration for the LollipopChart instance. 
+   * @method transitionDuration
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [transitionDuration]
+   * @return {number} [transitionDuration]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.transitionDuration = function(_) {
+    if(!arguments.length) return transitionDuration;
+    transitionDuration = _;
 
     return chart; 
   };
