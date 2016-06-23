@@ -19,7 +19,7 @@ describe('LollipopChart', function() {
       {country: 'India', value: 100, average: 55},
       {country: 'Maldives', value: 25, average: 30},
       {country: 'Nepal', value: 35, average: 40},
-      {country: 'Pakistan', value: 50, average: 60},
+      {country: 'Pakistan', value: undefined, average: 60},
       {country: 'Sri Lanka', value: 65, average: 50},
     ];
 
@@ -78,6 +78,35 @@ describe('LollipopChart', function() {
 
       expect(generatedBarWidth).toEqual(expectedBarWidth);
       expect(BAR_GAP).toEqual(LollipopChart.barGap());
+    });
+
+    it('should calculate the correct lollipop y position for bad/no data', function() {
+      var expectedY = HEIGHT / 2;
+      var generatedY = LollipopChart.generateLollipopY(data[6]);
+
+      expect(generatedY).toEqual(expectedY);
+    });
+
+    it('should calculate the correct line end position for bad/no data', function() {
+      var expectedY = 0;
+      var generatedY = LollipopChart.generateLineY2(data[6]);
+
+      expect(generatedY).toEqual(expectedY);
+    });
+
+    it('should calculate the correct bar height for bad/no data', function() {
+      var expectedHeight = 0;
+      var generatedHeight = LollipopChart.generateBarHeight(data[6]);
+
+      expect(generatedHeight).toEqual(expectedHeight);
+    });
+
+    it('should choose the correct color for bad/no data', function() {
+      var noDataColor = "#bbb";
+      LollipopChart.noDataColor(noDataColor);
+
+      expect(LollipopChart.noDataColor()).toEqual(noDataColor);
+      expect(LollipopChart.colorAccessor(data[6])).toEqual(noDataColor);
     });
 
     it('should set the lollipop height above the bar for a value above its comparisonValue like for Afghanistan', function() {
@@ -300,7 +329,7 @@ describe('LollipopChart', function() {
       {country: 'India', value: 100, average: 55},
       {country: 'Maldives', value: 25, average: 30},
       {country: 'Nepal', value: 35, average: 40},
-      {country: 'Pakistan', value: 50, average: 60},
+      {country: 'Pakistan', value: undefined, average: 60},
       {country: 'Sri Lanka', value: 65, average: 50},
     ];
 
