@@ -95,9 +95,9 @@ var LollipopChart = function (selection) {
       .enter()
       .append("circle")
       .attr("cx", generateLollipopX)
-      .attr("r", lollipopRadius)
+      .attr("r", chart.generateLollipopRadius)
       .attr("fill", function(d) { return chart.colorAccessor(d); })
-      .attr("cy", svgHeight)
+      .attr("cy", svgHeight + lollipopRadius)
     .transition()
       .duration(transitionDuration)
       .attr("cy", chart.generateLollipopY)
@@ -107,14 +107,10 @@ var LollipopChart = function (selection) {
       if(chart.isBadDatum(d)) {
         svg.append("text")
           .attr("x", generateLollipopX(d, i))
-          .attr("dy", ".3em")
           .attr("font-size", lollipopRadius + "px")
           .attr("text-anchor", "middle")
           .text(noDataText)
-          .attr("y", svgHeight)
-        .transition()
-          .duration(transitionDuration)
-          .attr("y", chart.generateLollipopY(d, i));
+          .attr("y", svgHeight -5);
       }
 
     });
@@ -275,12 +271,12 @@ var LollipopChart = function (selection) {
   }
 
   chart.generateLollipopY = function(d) {
-    if(chart.isBadDatum(d)) return svgHeight / 2;
+    if(chart.isBadDatum(d)) return svgHeight + lollipopRadius;
     return svgHeight - chart.generateLollipopHeight(d);
   }
 
   chart.generateLineY2 = function(d) {
-    if(chart.isBadDatum(d)) return 0;
+    if(chart.isBadDatum(d)) return svgHeight;
     else return chart.generateLollipopY(d);
   }
 
@@ -309,6 +305,11 @@ var LollipopChart = function (selection) {
     var value = valueAccessorFunc(d);
     
     return yScale(value);
+  };
+
+  chart.generateLollipopRadius = function(d) {
+    if(chart.isBadDatum(d)) return 0;
+    return lollipopRadius;
   };
 
   chart.isBadDatum = function(datum) {

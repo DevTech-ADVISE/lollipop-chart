@@ -81,14 +81,14 @@ describe('LollipopChart', function() {
     });
 
     it('should calculate the correct lollipop y position for bad/no data', function() {
-      var expectedY = HEIGHT / 2;
+      var expectedY = HEIGHT + LollipopChart.lollipopRadius();
       var generatedY = LollipopChart.generateLollipopY(data[6]);
 
       expect(generatedY).toEqual(expectedY);
     });
 
     it('should calculate the correct line end position for bad/no data', function() {
-      var expectedY = 0;
+      var expectedY = HEIGHT;
       var generatedY = LollipopChart.generateLineY2(data[6]);
 
       expect(generatedY).toEqual(expectedY);
