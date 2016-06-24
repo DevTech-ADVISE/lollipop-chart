@@ -14,7 +14,7 @@ var gradesPerName = [
   ];
 
 var dataIndividualScales = [
-  {name: 'Afghanistan', value: 80, comparisonValue: 60, scale: d3.scale.linear().domain([40, 100])},
+  {name: 'Afghanistan', value: 80, comparisonValue: undefined, scale: d3.scale.linear().domain([40, 100])},
   {name: 'Bangladesh', value: 50, comparisonValue: 50, scale: d3.scale.linear().domain([40, 60])},
   {name: 'Bhutan', value: 5, comparisonValue: 35, scale: d3.scale.linear().domain([0, 50])},
   {name: 'India', value: 100, comparisonValue: 55, scale: d3.scale.linear().domain([40, 100])},

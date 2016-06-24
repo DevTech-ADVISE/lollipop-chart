@@ -25,7 +25,9 @@ var LollipopChart = function (selection) {
   xScale = d3.scale.linear(), 
   useCustomScale = false,
   colorScale = d3.scale.category10(),
-  transitionDuration = 750;
+  transitionDuration = 750,
+  noDataColor = "#ccc",
+  noDataText = "N/A";
 
   // scale accessor will use an individual scale if given, otherwise it uses the chart scale
   var yScaleAccessor = function(d) { 
@@ -85,7 +87,7 @@ var LollipopChart = function (selection) {
       .attr("y2", svgHeight)
     .transition()
       .duration(transitionDuration)
-      .attr("y2", generateLollipopY);
+      .attr("y2", chart.generateLineY2);
 
     // append lollipop circles
     svg.selectAll("circle")
@@ -93,12 +95,25 @@ var LollipopChart = function (selection) {
       .enter()
       .append("circle")
       .attr("cx", generateLollipopX)
-      .attr("r", lollipopRadius)
-      .attr("fill", function(d) { return colorScale(nameAccessorFunc(d)); })
-      .attr("cy", svgHeight)
+      .attr("r", chart.generateLollipopRadius)
+      .attr("fill", function(d) { return chart.colorAccessor(d); })
+      .attr("cy", svgHeight + lollipopRadius)
     .transition()
       .duration(transitionDuration)
-      .attr("cy", generateLollipopY)
+      .attr("cy", chart.generateLollipopY)
+
+    // fill in any no data lollipops with noDataText
+    chartData.forEach(function(d, i) {
+      if(chart.isBadDatum(d)) {
+        svg.append("text")
+          .attr("x", generateLollipopX(d, i))
+          .attr("font-size", lollipopRadius + "px")
+          .attr("text-anchor", "middle")
+          .text(noDataText)
+          .attr("y", svgHeight -5);
+      }
+
+    });
 
 
   };
@@ -162,6 +177,27 @@ var LollipopChart = function (selection) {
     colorScale = _;
 
     return chart;
+  };
+
+  chart.colorAccessor = function(datum) {
+    if(chart.isBadDatum(datum)) return noDataColor;
+    return colorScale(nameAccessorFunc(datum));
+  }
+
+  /**
+   * Get/set the no-data-color for the LollipopChart instance. 
+   * @method noDataColor
+   * @memberof LollipopChart
+   * @instance
+   * @param  {string} [color]
+   * @return {string} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.noDataColor = function(_) {
+    if(!arguments.length) return noDataColor;
+    noDataColor = _;
+
+    return chart; 
   };
 
   // For internal purposes to position the bars and lollipops along the horizontal
@@ -234,15 +270,21 @@ var LollipopChart = function (selection) {
     return barX + chart.generateBarWidth() / 2;
   }
 
-  function generateLollipopY(d, i) {
+  chart.generateLollipopY = function(d) {
+    if(chart.isBadDatum(d)) return svgHeight + lollipopRadius;
     return svgHeight - chart.generateLollipopHeight(d);
+  }
+
+  chart.generateLineY2 = function(d) {
+    if(chart.isBadDatum(d)) return svgHeight;
+    else return chart.generateLollipopY(d);
   }
 
   function generateBarX(d, i) {
     return xScale(i);
   }
 
-  function generateBarY(d, i) {
+  function generateBarY(d) {
     return svgHeight - chart.generateBarHeight(d);
   }
 
@@ -251,6 +293,7 @@ var LollipopChart = function (selection) {
   }
 
   chart.generateBarHeight = function(d) {
+    if(chart.isBadDatum(d)) return 0;
     var yScale = yScaleAccessor(d);
     var comparisonValue = comparisonValueAccessorFunc(d);
 
@@ -260,8 +303,21 @@ var LollipopChart = function (selection) {
   chart.generateLollipopHeight = function(d) {
     var yScale = yScaleAccessor(d);
     var value = valueAccessorFunc(d);
-
+    
     return yScale(value);
+  };
+
+  chart.generateLollipopRadius = function(d) {
+    if(chart.isBadDatum(d)) return 0;
+    return lollipopRadius;
+  };
+
+  chart.isBadDatum = function(datum) {
+    var value = valueAccessorFunc(datum);
+    var comparisonValue = comparisonValueAccessorFunc(datum);
+
+    if(!Number(value) || !Number(comparisonValue)) return true;
+    return false;
   };
 
   /**
