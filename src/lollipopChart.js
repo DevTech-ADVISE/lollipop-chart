@@ -8,7 +8,9 @@
 
 // d3 is an external, it won't be bundled in
 var d3 = require('d3');
+var dtip = require('d3-tip')(d3);
 require('./lollipopChart.scss');
+require('./tooltips.scss');
 
 var LollipopChart = function (selection) {
 
@@ -27,7 +29,18 @@ var LollipopChart = function (selection) {
   colorScale = d3.scale.category10(),
   transitionDuration = 750,
   noDataColor = "#ccc",
-  noDataText = "N/A";
+  noDataText = "N/A",
+  d3TipClass = "d3-tip-mouse",
+  ttOffset = [0, 0],
+  ttFormatter = d3.format(",");
+
+  var toolTipContentFunc = function(d) {
+    var tooltipMarkup = "<label>Name: </label>" + chart.nameAccessor()(d);
+    tooltipMarkup += "<br/><label>Value: </label>" + ttFormatter(chart.valueAccessor()(d));
+    tooltipMarkup += "<br/><label>Comparison Value: </label>" + ttFormatter(chart.comparisonValueAccessor()(d));
+    
+    return tooltipMarkup;
+  };
 
   // scale accessor will use an individual scale if given, otherwise it uses the chart scale
   var yScaleAccessor = function(d) { 
@@ -51,8 +64,16 @@ var LollipopChart = function (selection) {
    */
   chart.render = function(_) {
 
-    // initialize svg
+    // initialize svg and tooltip
     var svg = d3.select(selection).html('').classed('Lollipop-Chart', true).append('svg');
+    var ttId = d3.select(selection).attr('id') + '-tip';
+    var tt = d3.tip()
+      .attr('class', d3TipClass)
+      .attr('id', ttId)
+      .html(toolTipContentFunc)
+      .offset(ttOffset)
+      .positionAnchor('mouse');
+
 
     //if data is passed, update the chart data
     if(arguments.length) {
@@ -115,6 +136,12 @@ var LollipopChart = function (selection) {
 
     });
 
+    // add tooltips to bars and lollipops
+    var tippables = svg.selectAll("circle, line, rect");
+    tippables.call(tt);
+    tippables.on('mouseover', tt.show)
+      .on('mouseout', tt.hide)
+      .on('mousemove', tt.updatePosition);
 
   };
 

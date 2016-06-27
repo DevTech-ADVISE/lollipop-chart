@@ -39,7 +39,8 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
-    "d3": "^3.5.17"
+    "d3": "^3.5.17", 
+    "d3-tip": "git://github.com/BI/d3-tip"
   }, 
   "jest": {
     "moduleNameMapper": {

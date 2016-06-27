@@ -1,0 +1,98 @@
+.d3-tip-mouse {
+    font-size:13px;
+    line-height: 16px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index:100;
+    outline: none;
+
+    label {
+        font-family: 'Abel', Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        //include the following styles so zurb topbar doesn't override any label styles
+        font-size: 13px;
+        line-height: 16px;
+        color: #fff;
+        display: inline;
+    }
+}
+
+.d3-tip {
+    font-size:13px;
+    line-height: 16px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index:100;
+    outline: none;
+
+    label {font-family: 'Abel', Helvetica, Arial, sans-serif;font-weight: 400;}
+
+    /* Creates a small triangle extender for the tooltip */
+    &:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        position: absolute;
+        pointer-events: none;
+        z-index:100;
+    }
+
+    /* Northward tooltips */
+    &.n:after {
+        content: "\25BC";
+        top: auto;
+        bottom:-7px;
+        left: 0;
+        text-align: center;
+    }
+    &.ne:after {
+        content: "\25BC";
+        top: auto;
+        bottom:-7px;
+        left: 0;
+        text-align: left;
+        padding-left:8px;
+    }
+    &.nw:after {
+        content: "\25BC";
+        top: auto;
+        bottom:-7px;
+        left: 0;
+        text-align: right;
+        padding-right:8px
+    }
+
+    /* Eastward tooltips */
+    &.e:after {
+        content: "\25C0";
+        margin: -4px 0 0 0;
+        top: 50%;
+        left: -7px;
+    }
+
+    /* Southward tooltips */
+    &.s:after {
+        content: "\25B2";
+        margin: 0 0 1px 0;
+        top: -8px;
+        left: 0;
+        text-align: center;
+    }
+
+    /* Westward tooltips */
+    &.w:after {
+        content: "\25B6";
+        margin: -4px 0 0 -2px;
+        top: 50%;
+        left: 100%;
+    }
+}
