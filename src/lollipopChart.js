@@ -16,8 +16,9 @@ var LollipopChart = function (selection) {
 
   var chart = {};
 
-  // settings
-  var svgWidth = 450,
+  // initial settings
+  var svg,
+  svgWidth = 450,
   svgHeight = 200,
   barGap = 15, 
   lollipopRadius = 10,
@@ -30,16 +31,25 @@ var LollipopChart = function (selection) {
   transitionDuration = 750,
   noDataColor = "#ccc",
   noDataText = "N/A",
-  d3TipClass = "d3-tip-mouse",
   ttOffset = [0, 0],
   ttFormatter = d3.format(",");
 
-  var toolTipContentFunc = function(d) {
+  // css class names
+  var d3TipClass = "d3-tip-mouse",
+    barClass = "comparison-bar",
+    lineClass = "lollipop-line",
+    circleClass = "lollipop-circle";
+
+  var tooltipMarkupFunc = function(d) {
     var tooltipMarkup = "<label>Name: </label>" + chart.nameAccessor()(d);
     tooltipMarkup += "<br/><label>Value: </label>" + ttFormatter(chart.valueAccessor()(d));
     tooltipMarkup += "<br/><label>Comparison Value: </label>" + ttFormatter(chart.comparisonValueAccessor()(d));
     
     return tooltipMarkup;
+  };
+
+  var ttNAMarkupFunc = function(d) {
+    return "Data not available";
   };
 
   // scale accessor will use an individual scale if given, otherwise it uses the chart scale
@@ -65,14 +75,20 @@ var LollipopChart = function (selection) {
   chart.render = function(_) {
 
     // initialize svg and tooltip
-    var svg = d3.select(selection).html('').classed('Lollipop-Chart', true).append('svg');
+    svg = d3.select(selection).html('').classed('Lollipop-Chart', true).append('svg');
     var ttId = d3.select(selection).attr('id') + '-tip';
     var tt = d3.tip()
-      .attr('class', d3TipClass)
-      .attr('id', ttId)
-      .html(toolTipContentFunc)
+      .attr("class", d3TipClass)
+      .attr("id", ttId)
+      .html(tooltipMarkupFunc)
       .offset(ttOffset)
-      .positionAnchor('mouse');
+      .positionAnchor("mouse");
+    var ttNA = d3.tip()
+      .attr("class", d3TipClass)
+      .attr("id", ttId + "-na")
+      .html(ttNAMarkupFunc)
+      .offset(ttOffset)
+      .positionAnchor("mouse");
 
 
     //if data is passed, update the chart data
@@ -89,6 +105,7 @@ var LollipopChart = function (selection) {
       .data(chartData)
       .enter()
       .append("rect")
+      .classed(barClass, true)
       .attr("x", generateBarX)
       .attr("width", chart.generateBarWidth)
       .attr("height", chart.generateBarHeight)
@@ -102,6 +119,7 @@ var LollipopChart = function (selection) {
       .data(chartData)
       .enter()
       .append("line")
+      .classed(lineClass, true)
       .attr("x1", generateLollipopX)
       .attr("x2", generateLollipopX)
       .attr("y1", svgHeight)
@@ -115,6 +133,7 @@ var LollipopChart = function (selection) {
       .data(chartData)
       .enter()
       .append("circle")
+      .classed(circleClass, true)
       .attr("cx", generateLollipopX)
       .attr("r", chart.generateLollipopRadius)
       .attr("fill", function(d) { return chart.colorAccessor(d); })
@@ -127,21 +146,33 @@ var LollipopChart = function (selection) {
     chartData.forEach(function(d, i) {
       if(chart.isBadDatum(d)) {
         svg.append("text")
+          .datum(d)
+          .classed("na-text", true)
           .attr("x", generateLollipopX(d, i))
           .attr("font-size", lollipopRadius + "px")
           .attr("text-anchor", "middle")
           .text(noDataText)
           .attr("y", svgHeight -5);
       }
-
     });
 
-    // add tooltips to bars and lollipops
-    var tippables = svg.selectAll("circle, line, rect");
-    tippables.call(tt);
-    tippables.on('mouseover', tt.show)
-      .on('mouseout', tt.hide)
-      .on('mousemove', tt.updatePosition);
+    // add ghost bars for tooltips
+    chartData.forEach(function(d, i) {
+      var ttGhostRect = svg.append("rect").datum(d);
+      ttGhostRect.classed("tt-ghost-rect", true)
+        .attr("x", generateBarX(d, i))
+        .attr("y", 0)
+        .attr("width", chart.generateBarWidth)
+        .attr("height", svgHeight);
+      var tooltip = tt;
+      if(chart.isBadDatum(d)) tooltip = ttNA;
+
+      ttGhostRect.call(tooltip);
+      ttGhostRect.on("mouseover", ttMouseOver(d, i, tooltip))
+        .on("mouseout", ttMouseOut(d, i, tooltip))
+        .on("mousemove", tooltip.updatePosition);
+
+    });
 
   };
 
@@ -181,6 +212,54 @@ var LollipopChart = function (selection) {
 
     return chart;
   };
+
+    /**
+   * Get/set the color tooltip markup function for the LollipopChart instance. The default will return a function with markup for displaying the Name, Value, and Comparison Value in a tooltip
+   * @method tooltipMarkupFunc
+   * @memberof LollipopChart
+   * @instance
+   * @param  {function} [tooltipMarkupFunction]
+   * @return {Object} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.tooltipMarkupFunc = function(_) {
+    if(!arguments.length) return toolTipMarkupFunc;
+    toolTipMarkupFunc = _;
+
+    return chart;
+  };
+
+  function ttMouseOver(d, i, tooltip) {
+    var that = this;
+    return function() {
+      svg.selectAll("rect." + barClass)
+        .filter(function(barData){ return chart.nameAccessor()(barData) === chart.nameAccessor()(d); })
+        .classed("active", true);
+      svg.selectAll("circle." + circleClass)
+        .filter(function(circleData){ return chart.nameAccessor()(circleData) === chart.nameAccessor()(d); })
+        .classed("active", true);
+      svg.selectAll("text")
+        .filter(function(textData){ return chart.nameAccessor()(textData) === chart.nameAccessor()(d); })
+        .classed("active", true);
+      return tooltip.show(d, i).bind(that);
+    }
+  }
+
+  function ttMouseOut(d, i, tooltip) {
+    var that = this;
+    return function() {
+      svg.selectAll("rect." + barClass)
+        .filter(function(barData){ return chart.nameAccessor()(barData) === chart.nameAccessor()(d); })
+        .classed("active", false);
+      svg.selectAll("circle." + circleClass)
+        .filter(function(circleData){ return chart.nameAccessor()(circleData) === chart.nameAccessor()(d); })
+        .classed("active", false);
+      svg.selectAll("text")
+        .filter(function(textData){ return chart.nameAccessor()(textData) === chart.nameAccessor()(d); })
+        .classed("active", false);
+      return tooltip.hide(d, i).bind(that);
+    }
+  }
 
   // This function returns a y-scale for a given data
   chart.yScaleAccessor = function(_) {

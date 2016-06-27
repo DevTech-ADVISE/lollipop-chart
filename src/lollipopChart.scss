@@ -2,11 +2,29 @@
 .Lollipop-Chart {
 	rect {
 		fill: #D4E6F6;
+
+		&.active{
+			stroke: #7CA3C5;
+		}
+	}
+
+	rect.tt-ghost-rect {
+		fill: none;
+		stroke: none;
+		pointer-events: all;
+	}
+
+	circle.active {
+		stroke: #7CA3C5;
 	}
 
 	line {
 		stroke: #9FA2A4;
 		stroke-width: 1px;
 		stroke-dasharray: 5, 3;
+	}
+
+	text.na-text.active {
+		fill: #7CA3C5;
 	}
 }
