@@ -206,8 +206,9 @@ var LollipopChart = function (selection) {
     });
 
     // The xScale is used to position objects on the x axis
+    // add one barGap to the range so the last bar has no gap on the right
     xScale.domain([0, chartData.length])
-      .range([0, svgWidth]);
+      .range([0, svgWidth + barGap]);
     colorScale.domain(chartData.map(nameAccessorFunc));
 
     return chart;
@@ -395,7 +396,8 @@ var LollipopChart = function (selection) {
   }
 
   chart.generateBarWidth = function() {
-    return svgWidth / chartData.length - barGap; 
+    // add one barGap to the svg width so when the width gets calculated the last bar will have no gap on the right
+    return (svgWidth + barGap) / chartData.length - barGap; 
   }
 
   chart.generateBarHeight = function(d) {

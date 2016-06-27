@@ -64,14 +64,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	// d3 is an external, it won't be bundled in
 	var d3 = __webpack_require__(1);
-	__webpack_require__(2);
+	var dtip = __webpack_require__(2)(d3);
+	__webpack_require__(3);
+	__webpack_require__(7);
 	
 	var LollipopChart = function (selection) {
 	
 	  var chart = {};
 	
-	  // settings
-	  var svgWidth = 450,
+	  // initial settings
+	  var svg,
+	      svgWidth = 450,
 	      svgHeight = 200,
 	      barGap = 15,
 	      lollipopRadius = 10,
@@ -81,7 +84,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	      xScale = d3.scale.linear(),
 	      useCustomScale = false,
 	      colorScale = d3.scale.category10(),
-	      transitionDuration = 750;
+	      transitionDuration = 750,
+	      noDataColor = "#ccc",
+	      noDataText = "N/A",
+	      ttOffset = [0, 0],
+	      ttFormatter = d3.format(",");
+	
+	  // css class names
+	  var d3TipClass = "d3-tip-mouse",
+	      barClass = "comparison-bar",
+	      lineClass = "lollipop-line",
+	      circleClass = "lollipop-circle";
+	
+	  var tooltipMarkupFunc = function (d) {
+	    var tooltipMarkup = "<label>Name: </label>" + chart.nameAccessor()(d);
+	    tooltipMarkup += "<br/><label>Value: </label>" + ttFormatter(chart.valueAccessor()(d));
+	    tooltipMarkup += "<br/><label>Comparison Value: </label>" + ttFormatter(chart.comparisonValueAccessor()(d));
+	
+	    return tooltipMarkup;
+	  };
+	
+	  var ttNAMarkupFunc = function (d) {
+	    return "Data not available";
+	  };
 	
 	  // scale accessor will use an individual scale if given, otherwise it uses the chart scale
 	  var yScaleAccessor = function (d) {
@@ -111,8 +136,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	   */
 	  chart.render = function (_) {
 	
-	    // initialize svg
-	    var svg = d3.select(selection).html('').classed('Lollipop-Chart', true).append('svg');
+	    // initialize svg and tooltip
+	    svg = d3.select(selection).html('').classed('Lollipop-Chart', true).append('svg');
+	    var ttId = d3.select(selection).attr('id') + '-tip';
+	    var tt = d3.tip().attr("class", d3TipClass).attr("id", ttId).html(tooltipMarkupFunc).offset(ttOffset).positionAnchor("mouse");
+	    var ttNA = d3.tip().attr("class", d3TipClass).attr("id", ttId + "-na").html(ttNAMarkupFunc).offset(ttOffset).positionAnchor("mouse");
 	
 	    //if data is passed, update the chart data
 	    if (arguments.length) {
@@ -124,15 +152,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	    svg.attr("height", svgHeight);
 	
 	    // append bars
-	    svg.selectAll("rect").data(chartData).enter().append("rect").attr("x", generateBarX).attr("width", chart.generateBarWidth).attr("height", chart.generateBarHeight).attr("y", svgHeight).transition().duration(transitionDuration).attr("y", generateBarY);
+	    svg.selectAll("rect").data(chartData).enter().append("rect").classed(barClass, true).attr("x", generateBarX).attr("width", chart.generateBarWidth).attr("height", chart.generateBarHeight).attr("y", svgHeight).transition().duration(transitionDuration).attr("y", generateBarY);
 	
 	    // append the lollipop stems
-	    svg.selectAll("line").data(chartData).enter().append("line").attr("x1", generateLollipopX).attr("x2", generateLollipopX).attr("y1", svgHeight).attr("y2", svgHeight).transition().duration(transitionDuration).attr("y2", generateLollipopY);
+	    svg.selectAll("line").data(chartData).enter().append("line").classed(lineClass, true).attr("x1", generateLollipopX).attr("x2", generateLollipopX).attr("y1", svgHeight).attr("y2", svgHeight).transition().duration(transitionDuration).attr("y2", chart.generateLineY2);
 	
 	    // append lollipop circles
-	    svg.selectAll("circle").data(chartData).enter().append("circle").attr("cx", generateLollipopX).attr("r", lollipopRadius).attr("fill", function (d) {
-	      return colorScale(nameAccessorFunc(d));
-	    }).attr("cy", svgHeight).transition().duration(transitionDuration).attr("cy", generateLollipopY);
+	    svg.selectAll("circle").data(chartData).enter().append("circle").classed(circleClass, true).attr("cx", generateLollipopX).attr("r", chart.generateLollipopRadius).attr("fill", function (d) {
+	      return chart.colorAccessor(d);
+	    }).attr("cy", svgHeight + lollipopRadius).transition().duration(transitionDuration).attr("cy", chart.generateLollipopY);
+	
+	    // fill in any no data lollipops with noDataText
+	    chartData.forEach(function (d, i) {
+	      if (chart.isBadDatum(d)) {
+	        svg.append("text").datum(d).classed("na-text", true).attr("x", generateLollipopX(d, i)).attr("font-size", lollipopRadius + "px").attr("text-anchor", "middle").text(noDataText).attr("y", svgHeight - 5);
+	      }
+	    });
+	
+	    // add ghost bars for tooltips
+	    chartData.forEach(function (d, i) {
+	      var ttGhostRect = svg.append("rect").datum(d);
+	      ttGhostRect.classed("tt-ghost-rect", true).attr("x", generateBarX(d, i)).attr("y", 0).attr("width", chart.generateBarWidth).attr("height", svgHeight);
+	      var tooltip = tt;
+	      if (chart.isBadDatum(d)) tooltip = ttNA;
+	
+	      ttGhostRect.call(tooltip);
+	      ttGhostRect.on("mouseover", ttMouseOver(d, i, tooltip)).on("mouseout", ttMouseOut(d, i, tooltip)).on("mousemove", tooltip.updatePosition);
+	    });
 	  };
 	
 	  /**
@@ -165,11 +211,60 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	
 	    // The xScale is used to position objects on the x axis
-	    xScale.domain([0, chartData.length]).range([0, svgWidth]);
+	    // add one barGap to the range so the last bar has no gap on the right
+	    xScale.domain([0, chartData.length]).range([0, svgWidth + barGap]);
 	    colorScale.domain(chartData.map(nameAccessorFunc));
 	
 	    return chart;
 	  };
+	
+	  /**
+	  * Get/set the color tooltip markup function for the LollipopChart instance. The default will return a function with markup for displaying the Name, Value, and Comparison Value in a tooltip
+	  * @method tooltipMarkupFunc
+	  * @memberof LollipopChart
+	  * @instance
+	  * @param  {function} [tooltipMarkupFunction]
+	  * @return {Object} [Acts as getter if called with no parameter]
+	  * @return {LollipopChart} [Acts as setter if called with parameter]
+	  */
+	  chart.tooltipMarkupFunc = function (_) {
+	    if (!arguments.length) return toolTipMarkupFunc;
+	    toolTipMarkupFunc = _;
+	
+	    return chart;
+	  };
+	
+	  function ttMouseOver(d, i, tooltip) {
+	    var that = this;
+	    return function () {
+	      svg.selectAll("rect." + barClass).filter(function (barData) {
+	        return chart.nameAccessor()(barData) === chart.nameAccessor()(d);
+	      }).classed("active", true);
+	      svg.selectAll("circle." + circleClass).filter(function (circleData) {
+	        return chart.nameAccessor()(circleData) === chart.nameAccessor()(d);
+	      }).classed("active", true);
+	      svg.selectAll("text").filter(function (textData) {
+	        return chart.nameAccessor()(textData) === chart.nameAccessor()(d);
+	      }).classed("active", true);
+	      return tooltip.show(d, i).bind(that);
+	    };
+	  }
+	
+	  function ttMouseOut(d, i, tooltip) {
+	    var that = this;
+	    return function () {
+	      svg.selectAll("rect." + barClass).filter(function (barData) {
+	        return chart.nameAccessor()(barData) === chart.nameAccessor()(d);
+	      }).classed("active", false);
+	      svg.selectAll("circle." + circleClass).filter(function (circleData) {
+	        return chart.nameAccessor()(circleData) === chart.nameAccessor()(d);
+	      }).classed("active", false);
+	      svg.selectAll("text").filter(function (textData) {
+	        return chart.nameAccessor()(textData) === chart.nameAccessor()(d);
+	      }).classed("active", false);
+	      return tooltip.hide(d, i).bind(that);
+	    };
+	  }
 	
 	  // This function returns a y-scale for a given data
 	  chart.yScaleAccessor = function (_) {
@@ -191,6 +286,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	  chart.colorScale = function (_) {
 	    if (!arguments.length) return colorScale;
 	    colorScale = _;
+	
+	    return chart;
+	  };
+	
+	  chart.colorAccessor = function (datum) {
+	    if (chart.isBadDatum(datum)) return noDataColor;
+	    return colorScale(nameAccessorFunc(datum));
+	  };
+	
+	  /**
+	   * Get/set the no-data-color for the LollipopChart instance. 
+	   * @method noDataColor
+	   * @memberof LollipopChart
+	   * @instance
+	   * @param  {string} [color]
+	   * @return {string} [Acts as getter if called with no parameter]
+	   * @return {LollipopChart} [Acts as setter if called with parameter]
+	   */
+	  chart.noDataColor = function (_) {
+	    if (!arguments.length) return noDataColor;
+	    noDataColor = _;
 	
 	    return chart;
 	  };
@@ -265,23 +381,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return barX + chart.generateBarWidth() / 2;
 	  }
 	
-	  function generateLollipopY(d, i) {
+	  chart.generateLollipopY = function (d) {
+	    if (chart.isBadDatum(d)) return svgHeight + lollipopRadius;
 	    return svgHeight - chart.generateLollipopHeight(d);
-	  }
+	  };
+	
+	  chart.generateLineY2 = function (d) {
+	    if (chart.isBadDatum(d)) return svgHeight;else return chart.generateLollipopY(d);
+	  };
 	
 	  function generateBarX(d, i) {
 	    return xScale(i);
 	  }
 	
-	  function generateBarY(d, i) {
+	  function generateBarY(d) {
 	    return svgHeight - chart.generateBarHeight(d);
 	  }
 	
 	  chart.generateBarWidth = function () {
-	    return svgWidth / chartData.length - barGap;
+	    // add one barGap to the svg width so when the width gets calculated the last bar will have no gap on the right
+	    return (svgWidth + barGap) / chartData.length - barGap;
 	  };
 	
 	  chart.generateBarHeight = function (d) {
+	    if (chart.isBadDatum(d)) return 0;
 	    var yScale = yScaleAccessor(d);
 	    var comparisonValue = comparisonValueAccessorFunc(d);
 	
@@ -293,6 +416,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var value = valueAccessorFunc(d);
 	
 	    return yScale(value);
+	  };
+	
+	  chart.generateLollipopRadius = function (d) {
+	    if (chart.isBadDatum(d)) return 0;
+	    return lollipopRadius;
+	  };
+	
+	  chart.isBadDatum = function (datum) {
+	    var value = valueAccessorFunc(datum);
+	    var comparisonValue = comparisonValueAccessorFunc(datum);
+	
+	    if (!Number(value) || !Number(comparisonValue)) return true;
+	    return false;
 	  };
 	
 	  /**
@@ -9959,13 +10095,408 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// d3.tip
+	// Copyright (c) 2013 Justin Palmer
+	//
+	// Tooltips for d3.js SVG visualizations
+	
+	(function (root, factory) {
+	  if (true) {
+	    // AMD. Register as an anonymous module with d3 as a dependency.
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
+	  } else if (typeof module === 'object' && module.exports) {
+	    // CommonJS
+	    module.exports = function(d3) {
+	      d3.tip = factory(d3)
+	      return d3.tip
+	    }
+	  } else {
+	    // Browser global.
+	    factory(root.d3)
+	  }
+	}(this, function (d3) {
+	
+	  // Public - contructs a new tooltip
+	  //
+	  // Returns a tip
+	  d3.tip = function() {
+	    var direction = d3_tip_direction,
+	        offset    = d3_tip_offset,
+	        html      = d3_tip_html,
+	        node      = initNode(),
+	        svg       = null,
+	        point     = null,
+	        target    = null,
+	        positionAnchor = d3_tip_positionAnchor;
+	
+	    function tip(vis) {
+	      svg = getSVGNode(vis)
+	      point = svg.createSVGPoint()
+	      document.body.appendChild(node)
+	    }
+	
+	    // Public - show the tooltip on the screen
+	    //
+	    // Returns a tip
+	    tip.show = function() {
+	      var args = Array.prototype.slice.call(arguments)
+	      if(args[args.length - 1] instanceof SVGElement) target = args.pop()
+	
+	      var content = html.apply(this, args),
+	          poffset = offset.apply(this, args),
+	          dir     = direction.apply(this, args),
+	          nodel   = d3.select(node),
+	          i       = directions.length,
+	          coords,
+	          scrollTop  = document.documentElement.scrollTop || document.body.scrollTop,
+	          scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft
+	
+	      nodel.html(content)
+	        .style({ opacity: 1, 'pointer-events': 'all', 'z-index': 100 })
+	
+	      while(i--) nodel.classed(directions[i], false)
+	      coords = direction_callbacks.get(dir).apply(this)
+	      var rightEdge =  coords.left + poffset[1] + scrollLeft + nodel.property('offsetWidth');
+	      var bottomEdge = coords.top +  poffset[0] + scrollTop + nodel.property('offsetHeight');
+	      var overFlowRight = tipOverFlowRight(rightEdge);
+	      var overFlowBottom = tipOverFlowBottom(bottomEdge);
+	      var leftEdge = coords.left + poffset[1] + scrollLeft;
+	      var overFlowLeft = tipOverFlowLeft(leftEdge);
+	      var topEdge = coords.top + poffset[0] + scrollTop;
+	
+	      if(overFlowRight) leftEdge -= overFlowRight;
+	      if(overFlowLeft) leftEdge += overFlowLeft;
+	      if(overFlowBottom) topEdge -= overFlowBottom;
+	
+	      if(positionAnchor() === 'shape') {
+	        nodel.classed(dir, true).style({
+	          top: topEdge + 'px',
+	          left: leftEdge + 'px'
+	        });
+	      }
+	      else if(positionAnchor() === 'mouse') {
+	        nodel.classed(dir, true);
+	        tip.updatePosition(poffset);
+	      }
+	      
+	      return tip
+	    }
+	
+	    // Public - hide the tooltip
+	    //
+	    // Returns a tip
+	    tip.hide = function() {
+	      var nodel = d3.select(node)
+	      nodel.style({ opacity: 0, 'pointer-events': 'none', 'z-index': -1 })
+	      return tip
+	    }
+	
+	    //Public - update position of tooltip based on mouse
+	    //
+	    // Returns a tip
+	    tip.updatePosition = function(v) {
+	      var nodel = d3.select(node);
+	      var mouseX = d3.mouse(d3.select("html").node())[0] + 10;
+	      var mouseY = d3.mouse(d3.select("html").node())[1] + 20;
+	      var rightEdge = mouseX + nodel.property('offsetWidth');
+	      var bottomEdge = mouseY + nodel.property('offsetHeight');
+	      var overFlowRight = tipOverFlowRight(rightEdge);
+	      var overFlowLeft = tipOverFlowLeft(mouseX);
+	      var overFlowBottom = tipOverFlowBottom(bottomEdge);
+	
+	      if(v.length) {
+	        mouseX += v[0];
+	        mouseY += v[1];
+	      }
+	      if(overFlowRight) mouseX -= overFlowRight;
+	      if(overFlowLeft) mouseX += overFlowLeft;
+	      if(overFlowBottom) mouseY -= overFlowBottom;
+	
+	      nodel.style({
+	        top: mouseY + 'px',
+	        left: mouseX + 'px'
+	      });
+	      return tip;
+	    };
+	
+	    function tipOverFlowRight(rightEdge) {
+	      var windowWidth = window.outerWidth;
+	      if(rightEdge > windowWidth)
+	        return rightEdge - windowWidth;
+	      else
+	        return false;
+	    }
+	
+	    function tipOverFlowLeft(leftEdge) {
+	      var windowWidth = window.outerWidth;
+	      if(leftEdge < 0)
+	        return -(leftEdge);
+	      else
+	        return false;
+	    }
+	
+	    function tipOverFlowBottom(bottomEdge) {
+	      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+	      var windowHeight = window.innerHeight + scrollTop;
+	      if(bottomEdge > windowHeight)
+	        return bottomEdge - windowHeight;
+	      else
+	        return false;
+	    }
+	    // Public: Proxy attr calls to the d3 tip container.  Sets or gets attribute value.
+	    //
+	    // n - name of the attribute
+	    // v - value of the attribute
+	    //
+	    // Returns tip or attribute value
+	    tip.attr = function(n, v) {
+	      if (arguments.length < 2 && typeof n === 'string') {
+	        return d3.select(node).attr(n)
+	      } else {
+	        var args =  Array.prototype.slice.call(arguments)
+	        d3.selection.prototype.attr.apply(d3.select(node), args)
+	      }
+	
+	      return tip
+	    }
+	
+	    // Public: Proxy style calls to the d3 tip container.  Sets or gets a style value.
+	    //
+	    // n - name of the property
+	    // v - value of the property
+	    //
+	    // Returns tip or style property value
+	    tip.style = function(n, v) {
+	      if (arguments.length < 2 && typeof n === 'string') {
+	        return d3.select(node).style(n)
+	      } else {
+	        var args =  Array.prototype.slice.call(arguments)
+	        d3.selection.prototype.style.apply(d3.select(node), args)
+	      }
+	
+	      return tip
+	    }
+	
+	    // Public: Set or get the direction of the tooltip
+	    //
+	    // v - One of n(north), s(south), e(east), or w(west), nw(northwest),
+	    //     sw(southwest), ne(northeast) or se(southeast)
+	    //
+	    // Returns tip or direction
+	    tip.direction = function(v) {
+	      if (!arguments.length) return direction
+	      direction = v == null ? v : d3.functor(v)
+	
+	      return tip
+	    }
+	
+	    // Public: Set or get the position anchor of the tool tip.
+	    //
+	    // v - either 'ordinal' - the default position that uses ordinal positioning
+	    // or 'mouse' - to position the tool tip wherever the mouse goes on the selected node
+	    //
+	    // Returns tip or position
+	    tip.positionAnchor = function(v) {
+	      if (!arguments.length) return positionAnchor;
+	      positionAnchor = v == null ? v : d3.functor(v);
+	
+	      return tip;
+	    };
+	
+	    // Public: Sets or gets the offset of the tip
+	    //
+	    // v - Array of [x, y] offset
+	    //
+	    // Returns offset or
+	    tip.offset = function(v) {
+	      if (!arguments.length) return offset
+	      offset = v == null ? v : d3.functor(v)
+	
+	      return tip
+	    }
+	
+	    // Public: sets or gets the html value of the tooltip
+	    //
+	    // v - String value of the tip
+	    //
+	    // Returns html value or tip
+	    tip.html = function(v) {
+	      if (!arguments.length) return html
+	      html = v == null ? v : d3.functor(v)
+	
+	      return tip
+	    }
+	
+	    function d3_tip_direction() { return 'n' }
+	    function d3_tip_offset() { return [0, 0] }
+	    function d3_tip_html() { return ' ' }
+	    function d3_tip_positionAnchor() { return 'shape';}
+	
+	    var direction_callbacks = d3.map({
+	      n:  direction_n,
+	      s:  direction_s,
+	      e:  direction_e,
+	      w:  direction_w,
+	      nw: direction_nw,
+	      ne: direction_ne,
+	      sw: direction_sw,
+	      se: direction_se
+	    }),
+	
+	    directions = direction_callbacks.keys()
+	
+	    function direction_n() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.n.y - node.offsetHeight,
+	        left: bbox.n.x - node.offsetWidth / 2
+	      }
+	    }
+	
+	    function direction_s() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.s.y,
+	        left: bbox.s.x - node.offsetWidth / 2
+	      }
+	    }
+	
+	    function direction_e() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.e.y - node.offsetHeight / 2,
+	        left: bbox.e.x
+	      }
+	    }
+	
+	    function direction_w() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.w.y - node.offsetHeight / 2,
+	        left: bbox.w.x - node.offsetWidth
+	      }
+	    }
+	
+	    function direction_nw() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.nw.y - node.offsetHeight,
+	        left: bbox.nw.x - node.offsetWidth
+	      }
+	    }
+	
+	    function direction_ne() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.ne.y - node.offsetHeight,
+	        left: bbox.ne.x
+	      }
+	    }
+	
+	    function direction_sw() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.sw.y,
+	        left: bbox.sw.x - node.offsetWidth
+	      }
+	    }
+	
+	    function direction_se() {
+	      var bbox = getScreenBBox()
+	      return {
+	        top:  bbox.se.y,
+	        left: bbox.e.x
+	      }
+	    }
+	
+	    function initNode() {
+	      var node = d3.select(document.createElement('div'))
+	      node.style({
+	        position: 'absolute',
+	        top: 0,
+	        opacity: 0,
+	        'pointer-events': 'none',
+	        'box-sizing': 'border-box'
+	      })
+	
+	      return node.node()
+	    }
+	
+	    function getSVGNode(el) {
+	      el = el.node()
+	      if(el.tagName.toLowerCase() === 'svg')
+	        return el
+	
+	      return el.ownerSVGElement
+	    }
+	
+	    // Private - gets the screen coordinates of a shape
+	    //
+	    // Given a shape on the screen, will return an SVGPoint for the directions
+	    // n(north), s(south), e(east), w(west), ne(northeast), se(southeast), nw(northwest),
+	    // sw(southwest).
+	    //
+	    //    +-+-+
+	    //    |   |
+	    //    +   +
+	    //    |   |
+	    //    +-+-+
+	    //
+	    // Returns an Object {n, s, e, w, nw, sw, ne, se}
+	    function getScreenBBox() {
+	      var targetel   = target || d3.event.target;
+	
+	      while ('undefined' === typeof targetel.getScreenCTM && 'undefined' === targetel.parentNode) {
+	          targetel = targetel.parentNode;
+	      }
+	
+	      var bbox       = {},
+	          matrix     = targetel.getScreenCTM(),
+	          tbbox      = targetel.getBBox(),
+	          width      = tbbox.width,
+	          height     = tbbox.height,
+	          x          = tbbox.x,
+	          y          = tbbox.y
+	
+	      point.x = x
+	      point.y = y
+	      bbox.nw = point.matrixTransform(matrix)
+	      point.x += width
+	      bbox.ne = point.matrixTransform(matrix)
+	      point.y += height
+	      bbox.se = point.matrixTransform(matrix)
+	      point.x -= width
+	      bbox.sw = point.matrixTransform(matrix)
+	      point.y -= height / 2
+	      bbox.w  = point.matrixTransform(matrix)
+	      point.x += width
+	      bbox.e = point.matrixTransform(matrix)
+	      point.x -= width / 2
+	      point.y -= height / 2
+	      bbox.n = point.matrixTransform(matrix)
+	      point.y += height
+	      bbox.s = point.matrixTransform(matrix)
+	
+	      return bbox
+	    }
+	
+	    return tip
+	  };
+	  return d3.tip
+	}));
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(3);
+	var content = __webpack_require__(4);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(5)(content, {});
+	var update = __webpack_require__(6)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -9982,21 +10513,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(4)();
+	exports = module.exports = __webpack_require__(5)();
 	// imports
 	
 	
 	// module
-	exports.push([module.id, ".Lollipop-Chart rect {\n  fill: #D4E6F6; }\n\n.Lollipop-Chart line {\n  stroke: #9FA2A4;\n  stroke-width: 1px;\n  stroke-dasharray: 5, 3; }\n", ""]);
+	exports.push([module.id, ".Lollipop-Chart rect {\n  fill: #D4E6F6; }\n  .Lollipop-Chart rect.active {\n    stroke: #7CA3C5; }\n\n.Lollipop-Chart rect.tt-ghost-rect {\n  fill: none;\n  stroke: none;\n  pointer-events: all; }\n\n.Lollipop-Chart circle.active {\n  stroke: #7CA3C5; }\n\n.Lollipop-Chart line {\n  stroke: #9FA2A4;\n  stroke-width: 1px;\n  stroke-dasharray: 5, 3; }\n\n.Lollipop-Chart text.na-text.active {\n  fill: #7CA3C5; }\n", ""]);
 	
 	// exports
 
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports) {
 
 	/*
@@ -10052,7 +10583,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -10301,6 +10832,46 @@ return /******/ (function(modules) { // webpackBootstrap
 		if(oldSrc)
 			URL.revokeObjectURL(oldSrc);
 	}
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(8);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(6)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../node_modules/css-loader/index.js!./../node_modules/sass-loader/index.js!./tooltips.scss", function() {
+				var newContent = require("!!./../node_modules/css-loader/index.js!./../node_modules/sass-loader/index.js!./tooltips.scss");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(5)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, ".d3-tip-mouse {\n  font-size: 13px;\n  line-height: 16px;\n  padding: 8px;\n  background: rgba(0, 0, 0, 0.8);\n  color: #fff;\n  border-radius: 2px;\n  pointer-events: none;\n  z-index: 100;\n  outline: none; }\n  .d3-tip-mouse label {\n    font-family: 'Abel', Helvetica, Arial, sans-serif;\n    font-weight: 400;\n    font-size: 13px;\n    line-height: 16px;\n    color: #fff;\n    display: inline; }\n\n.d3-tip {\n  font-size: 13px;\n  line-height: 16px;\n  padding: 8px;\n  background: rgba(0, 0, 0, 0.8);\n  color: #fff;\n  border-radius: 2px;\n  pointer-events: none;\n  z-index: 100;\n  outline: none;\n  /* Creates a small triangle extender for the tooltip */\n  /* Northward tooltips */\n  /* Eastward tooltips */\n  /* Southward tooltips */\n  /* Westward tooltips */ }\n  .d3-tip label {\n    font-family: 'Abel', Helvetica, Arial, sans-serif;\n    font-weight: 400; }\n  .d3-tip:after {\n    box-sizing: border-box;\n    display: inline;\n    font-size: 10px;\n    width: 100%;\n    line-height: 1;\n    color: rgba(0, 0, 0, 0.8);\n    position: absolute;\n    pointer-events: none;\n    z-index: 100; }\n  .d3-tip.n:after {\n    content: \"\\25BC\";\n    top: auto;\n    bottom: -7px;\n    left: 0;\n    text-align: center; }\n  .d3-tip.ne:after {\n    content: \"\\25BC\";\n    top: auto;\n    bottom: -7px;\n    left: 0;\n    text-align: left;\n    padding-left: 8px; }\n  .d3-tip.nw:after {\n    content: \"\\25BC\";\n    top: auto;\n    bottom: -7px;\n    left: 0;\n    text-align: right;\n    padding-right: 8px; }\n  .d3-tip.e:after {\n    content: \"\\25C0\";\n    margin: -4px 0 0 0;\n    top: 50%;\n    left: -7px; }\n  .d3-tip.s:after {\n    content: \"\\25B2\";\n    margin: 0 0 1px 0;\n    top: -8px;\n    left: 0;\n    text-align: center; }\n  .d3-tip.w:after {\n    content: \"\\25B6\";\n    margin: -4px 0 0 -2px;\n    top: 50%;\n    left: 100%; }\n", ""]);
+	
+	// exports
 
 
 /***/ }
