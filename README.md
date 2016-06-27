@@ -60,7 +60,9 @@ lollipopChartBasic
     * [new LollipopChart(selection)](#new_LollipopChart_new)
     * [.render([data])](#LollipopChart+render) ⇒ <code>[LollipopChart](#LollipopChart)</code>
     * [.data([data])](#LollipopChart+data) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+    * [.tooltipMarkupFunc([tooltipMarkupFunction(datum)])](#LollipopChart+tooltipMarkupFunc) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.colorScale([scale])](#LollipopChart+colorScale) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+    * [.noDataColor([color])](#LollipopChart+noDataColor) ⇒ <code>string</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.yScale([d3 scale])](#LollipopChart+yScale) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.barGap([barGap])](#LollipopChart+barGap) ⇒ <code>number</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.lollipopRadius([radius])](#LollipopChart+lollipopRadius) ⇒ <code>number</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
@@ -69,6 +71,7 @@ lollipopChartBasic
     * [.valueAccessor([valueAccessorFunc])](#LollipopChart+valueAccessor) ⇒ <code>function</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.nameAccessor([nameAccessorFunc])](#LollipopChart+nameAccessor) ⇒ <code>function</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.comparisonValueAccessor([comparisonValueAccessorFunc])](#LollipopChart+comparisonValueAccessor) ⇒ <code>function</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+    * [.transitionDuration([transitionDuration])](#LollipopChart+transitionDuration) ⇒ <code>number</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
 
 <a name="new_LollipopChart_new"></a>
 
@@ -106,6 +109,18 @@ For individual scales, a domain must be set for that scale.
 | --- | --- |
 | [data] | <code>Object</code> | 
 
+<a name="LollipopChart+tooltipMarkupFunc"></a>
+
+### lollipopChart.tooltipMarkupFunc([tooltipMarkupFunction(datum)]) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+Get/set the color tooltip markup function for the LollipopChart instance. The default will return a function with markup for displaying the Name, Value, and Comparison Value in a tooltip
+
+**Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
+**Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
+
+| Param | Type |
+| --- | --- |
+| [tooltipMarkupFunction(datum)] | <code>function</code> | 
+
 <a name="LollipopChart+colorScale"></a>
 
 ### lollipopChart.colorScale([scale]) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
@@ -117,6 +132,18 @@ Get/set the color scale for the LollipopChart instance. The color scale is set b
 | Param | Type |
 | --- | --- |
 | [scale] | <code>Object</code> | 
+
+<a name="LollipopChart+noDataColor"></a>
+
+### lollipopChart.noDataColor([color]) ⇒ <code>string</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+Get/set the no-data-color for the LollipopChart instance.
+
+**Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
+**Returns**: <code>string</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
+
+| Param | Type |
+| --- | --- |
+| [color] | <code>string</code> | 
 
 <a name="LollipopChart+yScale"></a>
 
@@ -214,4 +241,16 @@ Get/set the comparison value accessor for the LollipopChart instance.
 | Param | Type |
 | --- | --- |
 | [comparisonValueAccessorFunc] | <code>function</code> | 
+
+<a name="LollipopChart+transitionDuration"></a>
+
+### lollipopChart.transitionDuration([transitionDuration]) ⇒ <code>number</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+Get/set the transition duration for the LollipopChart instance.
+
+**Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
+**Returns**: <code>number</code> - [transitionDuration]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
+
+| Param | Type |
+| --- | --- |
+| [transitionDuration] | <code>number</code> | 
 

@@ -219,7 +219,7 @@ var LollipopChart = function (selection) {
    * @method tooltipMarkupFunc
    * @memberof LollipopChart
    * @instance
-   * @param  {function} [tooltipMarkupFunction]
+   * @param  {function} [tooltipMarkupFunction(datum)]
    * @return {Object} [Acts as getter if called with no parameter]
    * @return {LollipopChart} [Acts as setter if called with parameter]
    */
