@@ -167,6 +167,10 @@ var LollipopChart = function (selection) {
       var tooltip = tt;
       if(chart.isBadDatum(d)) tooltip = ttNA;
 
+      // remove previous tooltip if there was one for this chart
+      if (!d3.select('#' + tooltip.attr("id")).empty()) d3.select('#' + tooltip.attr("id")).remove(); 
+
+      // add the tooltip to the element
       ttGhostRect.call(tooltip);
       ttGhostRect.on("mouseover", ttMouseOver(d, i, tooltip))
         .on("mouseout", ttMouseOut(d, i, tooltip))
@@ -224,8 +228,8 @@ var LollipopChart = function (selection) {
    * @return {LollipopChart} [Acts as setter if called with parameter]
    */
   chart.tooltipMarkupFunc = function(_) {
-    if(!arguments.length) return toolTipMarkupFunc;
-    toolTipMarkupFunc = _;
+    if(!arguments.length) return tooltipMarkupFunc;
+    tooltipMarkupFunc = _;
 
     return chart;
   };
