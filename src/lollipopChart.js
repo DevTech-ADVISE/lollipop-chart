@@ -40,15 +40,15 @@ var LollipopChart = function (selection) {
     lineClass = "lollipop-line",
     circleClass = "lollipop-circle";
 
-  var tooltipMarkupFunc = function(d) {
-    var tooltipMarkup = "<label>Name: </label>" + chart.nameAccessor()(d);
-    tooltipMarkup += "<br/><label>Value: </label>" + ttFormatter(chart.valueAccessor()(d));
-    tooltipMarkup += "<br/><label>Comparison Value: </label>" + ttFormatter(chart.comparisonValueAccessor()(d));
+  var tooltipContentFunc = function(d) {
+    var tooltipContent = "<label>Name: </label>" + chart.nameAccessor()(d);
+    tooltipContent += "<br/><label>Value: </label>" + ttFormatter(chart.valueAccessor()(d));
+    tooltipContent += "<br/><label>Comparison Value: </label>" + ttFormatter(chart.comparisonValueAccessor()(d));
     
-    return tooltipMarkup;
+    return tooltipContent;
   };
 
-  var ttNAMarkupFunc = function(d) {
+  var ttNAContentFunc = function(d) {
     return "Data not available";
   };
 
@@ -80,13 +80,13 @@ var LollipopChart = function (selection) {
     var tt = d3.tip()
       .attr("class", d3TipClass)
       .attr("id", ttId)
-      .html(tooltipMarkupFunc)
+      .html(tooltipContentFunc)
       .offset(ttOffset)
       .positionAnchor("mouse");
     var ttNA = d3.tip()
       .attr("class", d3TipClass)
       .attr("id", ttId + "-na")
-      .html(ttNAMarkupFunc)
+      .html(ttNAContentFunc)
       .offset(ttOffset)
       .positionAnchor("mouse");
 
@@ -219,17 +219,17 @@ var LollipopChart = function (selection) {
   };
 
     /**
-   * Get/set the color tooltip markup function for the LollipopChart instance. The default will return a function with markup for displaying the Name, Value, and Comparison Value in a tooltip
-   * @method tooltipMarkupFunc
+   * Get/set the color tooltip content function for the LollipopChart instance. The default will return a function with content for displaying the Name, Value, and Comparison Value in a tooltip
+   * @method tooltipContent
    * @memberof LollipopChart
    * @instance
-   * @param  {function} [tooltipMarkupFunction(datum)]
+   * @param  {function} [tooltipContentFunction(datum)]
    * @return {Object} [Acts as getter if called with no parameter]
    * @return {LollipopChart} [Acts as setter if called with parameter]
    */
-  chart.tooltipMarkupFunc = function(_) {
-    if(!arguments.length) return tooltipMarkupFunc;
-    tooltipMarkupFunc = _;
+  chart.tooltipContent = function(_) {
+    if(!arguments.length) return tooltipContentFunc;
+    tooltipContentFunc = _;
 
     return chart;
   };

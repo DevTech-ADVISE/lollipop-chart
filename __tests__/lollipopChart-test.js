@@ -1,6 +1,5 @@
 jest.unmock('../src/lollipopChart.js');
 jest.unmock('../node_modules/d3/d3.js');
-jest.unmock('../node_modules/d3-tip/index.js');
 
 var d3 = require('../node_modules/d3/d3.js');
 describe('LollipopChart', function() {
@@ -312,6 +311,14 @@ describe('LollipopChart', function() {
       LollipopChart.transitionDuration(transitionDuration);
 
       expect(LollipopChart.transitionDuration()).toEqual(transitionDuration);
+    });
+
+    it('should have a getter/setter for tooltip content function', () => {
+      var expectedContentFunc = function(d) { return "<em>content test</em>" + d.name; };
+      LollipopChart.tooltipContent(expectedContentFunc);
+      var actualContentFunc = LollipopChart.tooltipContent();
+
+      expect(actualContentFunc).toEqual(expectedContentFunc);
     });
 
   });

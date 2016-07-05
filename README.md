@@ -60,7 +60,7 @@ lollipopChartBasic
     * [new LollipopChart(selection)](#new_LollipopChart_new)
     * [.render([data])](#LollipopChart+render) ⇒ <code>[LollipopChart](#LollipopChart)</code>
     * [.data([data])](#LollipopChart+data) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
-    * [.tooltipMarkupFunc([tooltipMarkupFunction(datum)])](#LollipopChart+tooltipMarkupFunc) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+    * [.tooltipContent([tooltipContentFunction(datum)])](#LollipopChart+tooltipContent) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.colorScale([scale])](#LollipopChart+colorScale) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.noDataColor([color])](#LollipopChart+noDataColor) ⇒ <code>string</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
     * [.yScale([d3 scale])](#LollipopChart+yScale) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
@@ -109,17 +109,17 @@ For individual scales, a domain must be set for that scale.
 | --- | --- |
 | [data] | <code>Object</code> | 
 
-<a name="LollipopChart+tooltipMarkupFunc"></a>
+<a name="LollipopChart+tooltipContent"></a>
 
-### lollipopChart.tooltipMarkupFunc([tooltipMarkupFunction(datum)]) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
-Get/set the color tooltip markup function for the LollipopChart instance. The default will return a function with markup for displaying the Name, Value, and Comparison Value in a tooltip
+### lollipopChart.tooltipContent([tooltipContentFunction(datum)]) ⇒ <code>Object</code> &#124; <code>[LollipopChart](#LollipopChart)</code>
+Get/set the color tooltip content function for the LollipopChart instance. The default will return a function with content for displaying the Name, Value, and Comparison Value in a tooltip
 
 **Kind**: instance method of <code>[LollipopChart](#LollipopChart)</code>  
 **Returns**: <code>Object</code> - [Acts as getter if called with no parameter]<code>[LollipopChart](#LollipopChart)</code> - [Acts as setter if called with parameter]  
 
 | Param | Type |
 | --- | --- |
-| [tooltipMarkupFunction(datum)] | <code>function</code> | 
+| [tooltipContentFunction(datum)] | <code>function</code> | 
 
 <a name="LollipopChart+colorScale"></a>
 
