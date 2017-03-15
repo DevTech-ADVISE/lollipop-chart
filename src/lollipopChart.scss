@@ -18,10 +18,15 @@
 		stroke: #7CA3C5;
 	}
 
-	line {
+	.lollipop-line {
 		stroke: #9FA2A4;
 		stroke-width: 1px;
 		stroke-dasharray: 5, 3;
+	}
+	
+	.lollipop-axis-line {
+		stroke: #9FA2A4;
+		stroke-width: 1px;
 	}
 
 	text.na-text.active {

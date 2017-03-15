@@ -20,9 +20,9 @@ var LollipopChart = function (selection) {
   var svg,
   svgWidth = 450,
   svgHeight = 200,
-  barGap = 15, 
+  barGap = 35, 
   lollipopRadius = 10,
-  chartGutter = lollipopRadius,
+  chartGutter = 20,
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
@@ -32,7 +32,9 @@ var LollipopChart = function (selection) {
   noDataColor = "#ccc",
   noDataText = "N/A",
   ttOffset = [0, 0],
-  ttFormatter = d3.format(",");
+  ttFormatter = d3.format(","),
+  displayRangeAxis = false,
+  numberOfTicks = 2;
 
   // css class names
   var d3TipClass = "d3-tip-mouse",
@@ -61,7 +63,7 @@ var LollipopChart = function (selection) {
 
   // tell the chart how to access its data
   var valueAccessorFunc = function(d) { return d.value; };
-  var nameAccessorFunc = function(d) { return d.name; };
+  var nameAccessorFunc = function(d) { if(d!=null) return d.name; };
   var comparisonValueAccessorFunc = function(d) { return d.comparisonValue; };
 
   /**
@@ -141,7 +143,7 @@ var LollipopChart = function (selection) {
     .transition()
       .duration(transitionDuration)
       .attr("cy", chart.generateLollipopY)
-
+      
     // fill in any no data lollipops with noDataText
     chartData.forEach(function(d, i) {
       if(chart.isBadDatum(d)) {
@@ -153,6 +155,9 @@ var LollipopChart = function (selection) {
           .attr("text-anchor", "middle")
           .text(noDataText)
           .attr("y", svgHeight -5);
+      } else {
+        if(displayRangeAxis)
+          generateRangeAxis(d, i);
       }
     });
 
@@ -196,6 +201,8 @@ var LollipopChart = function (selection) {
     if(!arguments.length) return chartData;
     chartData = _;
 
+    var xScaleRange = [chartGutter, svgWidth + barGap - chartGutter];
+
     // Initialize scale domains, and override all y scale ranges 
     var yScaleRange = [0, svgHeight - chartGutter];
 
@@ -212,7 +219,7 @@ var LollipopChart = function (selection) {
     // The xScale is used to position objects on the x axis
     // add one barGap to the range so the last bar has no gap on the right
     xScale.domain([0, chartData.length])
-      .range([0, svgWidth + barGap]);
+      .range(xScaleRange);
     colorScale.domain(chartData.map(nameAccessorFunc));
 
     return chart;
@@ -385,6 +392,12 @@ var LollipopChart = function (selection) {
     if(chart.isBadDatum(d)) return svgHeight + lollipopRadius;
     return svgHeight - chart.generateLollipopHeight(d);
   }
+  
+  function generateLollipopLabelAxisX(d, i) {
+    var barX = generateBarX(d, i);
+    
+    return barX - barGap * (1/16);
+  }
 
   chart.generateLineY2 = function(d) {
     if(chart.isBadDatum(d)) return svgHeight;
@@ -397,6 +410,88 @@ var LollipopChart = function (selection) {
 
   function generateBarY(d) {
     return svgHeight - chart.generateBarHeight(d);
+  }
+  
+  function generateRangeAxis(d, i) {
+    // append lollipop y-axis tick marks
+    var safeFitSize = 5;
+    var numberMarginSize = 5;
+    var axisLabelSize = 10;
+    var labelAxisSize = Math.min(generateBarY(d, i), chart.generateLollipopY(d, i));
+    
+    //generate line for y-axis range labels
+    svg.append("line")
+      .classed("lollipop-axis-line", true)
+      .attr("x1", generateLollipopLabelAxisX(d, i))
+      .attr("x2", generateLollipopLabelAxisX(d, i))
+      .attr("y1", svgHeight)
+      .attr("y2", labelAxisSize)
+    .transition()
+      .duration(transitionDuration)
+      .attr("y2", labelAxisSize);
+    
+    //generate ticks on y-axis range line
+    for(var j = 1; j <= numberOfTicks; j++)
+    {
+      var tickPosition = (svgHeight + (labelAxisSize - svgHeight) * (j/(numberOfTicks)));
+      svg.append("text")
+        .classed("lollipop-axis-text", true)
+        .attr("x", generateLollipopLabelAxisX(d, i))
+        .attr("font-size", axisLabelSize + "px")
+        .attr("text-anchor", "end")
+        .attr("alignment-baseline", "middle")
+        .text("-")
+        .attr("y", svgHeight + (labelAxisSize - svgHeight) * (j/(numberOfTicks)));
+    }
+    
+    if(Math.abs(labelAxisSize - svgHeight) > safeFitSize) {
+      //render lollipop y-axis label
+      svg.append("text")
+        .classed("lollipop-axis-text", true)
+        .attr("x", generateLollipopLabelAxisX(d, i)-numberMarginSize)
+        .attr("font-size", axisLabelSize + "px")
+        .attr("text-anchor", "end")
+        .attr("alignment-baseline", "middle")
+        .text(Math.max(d.value, d.comparisonValue))
+        .attr("y", labelAxisSize);
+    }
+    
+    //check if lollipop y-axis label fits (give bottom range priority)
+    /*if(Math.abs(chart.generateLollipopY(d, i) - svgHeight) > safeFitSize) {
+      //render lollipop y-axis label
+      svg.append("text")
+        .classed("lollipop-axis-text", true)
+        .attr("x", generateLollipopLabelAxisX(d, i)-numberMarginSize)
+        .attr("font-size", lollipopRadius + "px")
+        .attr("text-anchor", "end")
+        .attr("alignment-baseline", "middle")
+        .text(d.value)
+        .attr("y", chart.generateLollipopY(d, i));
+    }
+    
+    //check if bar y-axis label fits (give bottom range and lollipop label priority)
+    if(Math.abs(generateBarY(d, i) - svgHeight) > safeFitSize 
+      && Math.abs(chart.generateLollipopY(d, i) - generateBarY(d, i)) > safeFitSize) {
+      //render bar y-axis label
+      svg.append("text")
+        .classed("lollipop-axis-text", true)
+        .attr("x", generateLollipopLabelAxisX(d, i)-numberMarginSize)
+        .attr("font-size", lollipopRadius + "px")
+        .attr("text-anchor", "end")
+        .attr("alignment-baseline", "middle")
+        .text(d.comparisonValue)
+        .attr("y", generateBarY(d, i));
+    }*/
+      
+    //render domain start value label
+    svg.append("text")
+      .classed("lollipop-axis-text", true)
+      .attr("x", generateLollipopLabelAxisX(d, i)-numberMarginSize)
+      .attr("font-size", axisLabelSize + "px")
+      .attr("text-anchor", "end")
+      .attr("alignment-baseline", "top") 
+      .text(yScaleAccessor(d).domain()[0])
+      .attr("y", svgHeight);
   }
 
   chart.generateBarWidth = function() {
