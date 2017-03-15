@@ -20,9 +20,9 @@ var LollipopChart = function (selection) {
   var svg,
   svgWidth = 450,
   svgHeight = 200,
-  barGap = 15, 
+  barGap = 35, 
   lollipopRadius = 10,
-  chartGutter = lollipopRadius,
+  chartGutter = [30, 0],
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
@@ -32,7 +32,10 @@ var LollipopChart = function (selection) {
   noDataColor = "#ccc",
   noDataText = "N/A",
   ttOffset = [0, 0],
-  ttFormatter = d3.format(",");
+  ttFormatter = d3.format(","),
+  displayRangeAxis = true,
+  numberOfTicks = 2,
+  axisLabelSize = 10;
 
   // css class names
   var d3TipClass = "d3-tip-mouse",
@@ -61,8 +64,10 @@ var LollipopChart = function (selection) {
 
   // tell the chart how to access its data
   var valueAccessorFunc = function(d) { return d.value; };
-  var nameAccessorFunc = function(d) { return d.name; };
+  var nameAccessorFunc = function(d) { if(d!=null) return d.name; };
   var comparisonValueAccessorFunc = function(d) { return d.comparisonValue; };
+  
+  var numberFormatter = function(number) { return number; };
 
   /**
    * Render the LollipopChart instance. Simply renders chart when called with parameter. Updates data, then renders, if called with parameter
@@ -141,7 +146,7 @@ var LollipopChart = function (selection) {
     .transition()
       .duration(transitionDuration)
       .attr("cy", chart.generateLollipopY)
-
+      
     // fill in any no data lollipops with noDataText
     chartData.forEach(function(d, i) {
       if(chart.isBadDatum(d)) {
@@ -153,6 +158,9 @@ var LollipopChart = function (selection) {
           .attr("text-anchor", "middle")
           .text(noDataText)
           .attr("y", svgHeight -5);
+      } else {
+        if(displayRangeAxis)
+          generateRangeAxis(d, i);
       }
     });
 
@@ -196,8 +204,10 @@ var LollipopChart = function (selection) {
     if(!arguments.length) return chartData;
     chartData = _;
 
+    var xScaleRange = [chartGutter[0], svgWidth + barGap - chartGutter[0]];
+
     // Initialize scale domains, and override all y scale ranges 
-    var yScaleRange = [0, svgHeight - chartGutter];
+    var yScaleRange = [0, svgHeight - chartGutter[1]];
 
     // The default yScale domain is the min/max values of the given data
     if(!useCustomScale) yScale.domain([d3.min(chartData, valueAccessorFunc), d3.max(chartData, valueAccessorFunc)])
@@ -212,8 +222,24 @@ var LollipopChart = function (selection) {
     // The xScale is used to position objects on the x axis
     // add one barGap to the range so the last bar has no gap on the right
     xScale.domain([0, chartData.length])
-      .range([0, svgWidth + barGap]);
+      .range(xScaleRange);
     colorScale.domain(chartData.map(nameAccessorFunc));
+
+    return chart;
+  };
+  
+  /**
+   * Get/set the number formatter
+   * @method numberFormatter
+   * @memberof LollipopChart
+   * @instance
+   * @param  {function} [numberFormatter(datum)]
+   * @return {Object} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.numberFormatter = function(_) {
+    if(!arguments.length) return numberFormatter;
+    numberFormatter = _;
 
     return chart;
   };
@@ -362,7 +388,7 @@ var LollipopChart = function (selection) {
   chart.lollipopRadius = function(_) {
     if(!arguments.length) return lollipopRadius;
     lollipopRadius = _;
-    chartGutter = _;
+    //chartGutter = _; //is this a bug?
 
     return chart; 
   };
@@ -385,6 +411,12 @@ var LollipopChart = function (selection) {
     if(chart.isBadDatum(d)) return svgHeight + lollipopRadius;
     return svgHeight - chart.generateLollipopHeight(d);
   }
+  
+  function generateLollipopLabelAxisX(d, i) {
+    var barX = generateBarX(d, i);
+    
+    return barX - barGap * (1/16);
+  }
 
   chart.generateLineY2 = function(d) {
     if(chart.isBadDatum(d)) return svgHeight;
@@ -397,6 +429,109 @@ var LollipopChart = function (selection) {
 
   function generateBarY(d) {
     return svgHeight - chart.generateBarHeight(d);
+  }
+  
+  /**
+   * Get/set whether the LollipopChart instance should display the range. 
+   * @method displayRangeAxis
+   * @memberof LollipopChart
+   * @instance
+   * @param  {boolean} [displayRangeAxis]
+   * @return {boolean} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.displayRangeAxis = function(_) {
+    if(!arguments.length) return displayRangeAxis;
+    displayRangeAxis = _;
+
+    return chart;
+  };
+  
+  /**
+   * Get/set the number of pieces the LollipopChart range axis should be divided into. 
+   * @method numberOfTicks
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [numberOfTicks]
+   * @return {number} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.numberOfTicks = function(_) {
+    if(!arguments.length) return numberOfTicks;
+    numberOfTicks = _;
+
+    return chart;
+  };
+  
+  /**
+   * Get/set the font size for the labels displayed on the LollipopChart range axis. 
+   * @method axisLabelSize
+   * @memberof LollipopChart
+   * @instance
+   * @param  {number} [axisLabelSize]
+   * @return {number} [Acts as getter if called with no parameter]
+   * @return {LollipopChart} [Acts as setter if called with parameter]
+   */
+  chart.axisLabelSize = function(_) {
+    if(!arguments.length) return axisLabelSize;
+    axisLabelSize = _;
+
+    return chart;
+  };
+  
+  
+  
+  function generateRangeAxis(d, i) {
+    // append lollipop y-axis tick marks
+    var safeFitSize = 5;
+    var numberMarginSize = 5;
+    var rangeAxisY = Math.min(generateBarY(d, i), chart.generateLollipopY(d, i));
+    
+    //generate line for y-axis range labels
+    svg.append("line")
+      .classed("lollipop-axis-line", true)
+      .attr("x1", generateLollipopLabelAxisX(d, i))
+      .attr("x2", generateLollipopLabelAxisX(d, i))
+      .attr("y1", svgHeight)
+      .attr("y2", rangeAxisY)
+    .transition()
+      .duration(transitionDuration)
+      .attr("y2", rangeAxisY);
+    
+    //generate ticks on y-axis range line
+    for(var j = 1; j <= numberOfTicks; j++)
+    {
+      var tickPosition = (svgHeight + (rangeAxisY - svgHeight) * (j/(numberOfTicks)));
+      var tickWidth = 3;
+      svg.append("line")
+        .classed("lollipop-axis-line", true)
+        .attr("x1", generateLollipopLabelAxisX(d, i)-tickWidth)
+        .attr("x2", generateLollipopLabelAxisX(d, i))
+        .attr("y1", svgHeight + (rangeAxisY - svgHeight) * (j/(numberOfTicks)))
+        .attr("y2", svgHeight + (rangeAxisY - svgHeight) * (j/(numberOfTicks)));
+    }
+    
+    if(Math.abs(rangeAxisY - svgHeight) > safeFitSize) {
+      //render lollipop y-axis label
+      svg.append("text")
+        .classed("lollipop-axis-text", true)
+        .attr("x", generateLollipopLabelAxisX(d, i)-numberMarginSize)
+        .attr("font-size", axisLabelSize + "px")
+        .attr("text-anchor", "end")
+        .attr("alignment-baseline", "middle")
+        .text(numberFormatter(Math.max(d.value, d.comparisonValue)))
+        .attr("y", rangeAxisY);
+    }
+      
+    //render domain start value label
+    svg.append("text")
+      .classed("lollipop-axis-text", true)
+      .attr("x", generateLollipopLabelAxisX(d, i)-numberMarginSize)
+      .attr("font-size", axisLabelSize + "px")
+      .attr("text-anchor", "end")
+      .attr("alignment-baseline", "top") 
+      .text(numberFormatter(yScaleAccessor(d).domain()[0]))
+      .attr("y", svgHeight);
   }
 
   chart.generateBarWidth = function() {
