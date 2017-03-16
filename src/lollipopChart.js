@@ -22,7 +22,7 @@ var LollipopChart = function (selection) {
   svgHeight = 200,
   barGap = 35, 
   lollipopRadius = 10,
-  chartGutter = [30, 0],
+  chartGutter = [30, 8],
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
@@ -431,6 +431,10 @@ var LollipopChart = function (selection) {
     return svgHeight - chart.generateBarHeight(d);
   }
   
+  function generateMaxY(d) {
+    return svgHeight - yScaleAccessor(d).range()[1];
+  }
+  
   /**
    * Get/set whether the LollipopChart instance should display the range. 
    * @method displayRangeAxis
@@ -485,7 +489,7 @@ var LollipopChart = function (selection) {
     // append lollipop y-axis tick marks
     var safeFitSize = 5;
     var numberMarginSize = 5;
-    var rangeAxisY = Math.min(generateBarY(d, i), chart.generateLollipopY(d, i));
+    var rangeAxisY = generateMaxY(d);
     
     //generate line for y-axis range labels
     svg.append("line")
@@ -519,7 +523,7 @@ var LollipopChart = function (selection) {
         .attr("font-size", axisLabelSize + "px")
         .attr("text-anchor", "end")
         .attr("alignment-baseline", "middle")
-        .text(numberFormatter(Math.max(d.value, d.comparisonValue)))
+        .text(numberFormatter(yScaleAccessor(d).domain()[1]))
         .attr("y", rangeAxisY);
     }
       
