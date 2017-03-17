@@ -22,7 +22,7 @@ var LollipopChart = function (selection) {
   svgHeight = 200,
   barGap = 35, 
   lollipopRadius = 10,
-  chartGutter = [30, 8],
+  chartGutter = [30, 10],
   chartData = {},
   yScale = d3.scale.linear(),
   xScale = d3.scale.linear(), 
@@ -388,7 +388,7 @@ var LollipopChart = function (selection) {
   chart.lollipopRadius = function(_) {
     if(!arguments.length) return lollipopRadius;
     lollipopRadius = _;
-    //chartGutter = _; //is this a bug?
+    chartGutter[1] = Math.max(chartGutter[1], _);
 
     return chart; 
   };
